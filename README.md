@@ -14,6 +14,17 @@ each folder's README. Use those names, so nothing clashes when we merge.
 | `backend/` | Raihan Quddus Tamir (24215489) · Backend + DevOps | `be/` |
 | `qa/` | QA Tester (name to add) | `qa/` |
 
+## Files at the repo root
+| File | Owner | Status |
+|---|---|---|
+| `README.md` | Iqbal | done |
+| `.gitignore` | Iqbal | done |
+| `.github/CODEOWNERS` | Iqbal | replace `@nazifa-handle`, `@wendi-handle`, `@raihan-handle`, `@qa-handle` with real usernames |
+| `.github/pull_request_template.md` | Iqbal | done |
+| `.github/ISSUE_TEMPLATE/bug_report.md` | QA | W1-QA-02 |
+| `.github/workflows/ci.yml` | Raihan | W1-BE-02 |
+| `docker-compose.yml`, `.env.example`, `.pre-commit-config.yaml` | Raihan | W1-BE-02 |
+
 ## Git rules (full version in the Project Hub)
 - `main`: only the PM merges `develop` into it, every Wednesday.
 - `develop`: all work comes together here through pull requests.
