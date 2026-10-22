@@ -29,7 +29,7 @@ Rules, roadmap and weekly tasks live in the **UM MailSense Project Hub**.
 | `docs/04-api-contract.md` | Raihan + Wendi + Iqbal | 28 Oct |
 | `.env.example` | Raihan + Iqbal | Open |
 
-Never hand-edit generated files: `frontend/src/types/api.ts` (after Week 2) and `backend/openapi.json`.
+Never hand-edit generated files: `frontend/src/types/api.generated.ts` (from Week 2) and `backend/openapi.json`.
 
 ## Stack
 
