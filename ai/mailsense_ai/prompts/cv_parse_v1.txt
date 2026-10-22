@@ -1,0 +1,7 @@
+Read this student CV and extract a short profile. Use null or [] when not stated.
+
+Reply with JSON only:
+{"field_of_study": "<text or null>", "year_of_study": <int or null>, "skills": ["..."], "interests": ["..."]}
+
+CV text:
+{cv_text}

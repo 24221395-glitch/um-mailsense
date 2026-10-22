@@ -1,0 +1,19 @@
+# UM MailSense: one owner per folder. Shared contracts need every listed owner (team rule).
+# Replace @nazifa-handle, @wendi-handle, @raihan-handle, @qa-handle with real GitHub usernames.
+*                                    @24221395-glitch
+/docs/                               @nazifa-handle
+/design/                             @wendi-handle
+/frontend/                           @wendi-handle
+/backend/                            @raihan-handle
+/ai/                                 @24221395-glitch
+/qa/                                 @qa-handle
+/.github/ISSUE_TEMPLATE/             @qa-handle
+/.github/workflows/                  @raihan-handle
+/docker-compose.yml                  @raihan-handle
+
+# SHARED CONTRACTS: all listed owners approve
+/ai/mailsense_ai/contracts.py        @24221395-glitch @raihan-handle
+/backend/app/services/ai_bridge.py   @raihan-handle @24221395-glitch
+/docs/03-database.md                 @nazifa-handle @raihan-handle
+/docs/04-api-contract.md             @raihan-handle @wendi-handle @24221395-glitch
+/.env.example                        @raihan-handle @24221395-glitch

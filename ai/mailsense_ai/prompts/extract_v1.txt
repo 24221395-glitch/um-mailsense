@@ -1,0 +1,9 @@
+Extract details from this university email. Use null when a detail is not stated.
+Dates in ISO 8601 with Malaysia time (+08:00).
+
+Reply with JSON only:
+{"deadline": "<datetime or null>", "venue": "<text or null>", "organiser": "<text or null>", "link": "<url or null>"}
+
+Subject: {subject}
+Body:
+{body_text}
