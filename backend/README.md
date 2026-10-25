@@ -34,7 +34,7 @@ backend/
 | `.github/workflows/ci.yml` (lint + tests on every pull request) | W1-BE-02 |
 
 ## Other tasks
-- W1-BE-01 register the app in Microsoft Entra; give Iqbal the permission list for `docs/um-it-request.md`
+- W1-BE-01 register the app in Microsoft Entra (app ID, redirect URLs, Graph permissions) for Siswamail sign-in
 - W1-BE-03 API contract in `docs/04-api-contract.md` (with Wendi and Iqbal) · freeze 28 Oct
 - W3-FE-03 connect the frontend to the real API (with Wendi)
 - W4-QA-02 security checks (with QA) · W4-BE-01 bug fixes · W4-BE-02 deploy over HTTPS (with Wendi)

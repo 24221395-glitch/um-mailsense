@@ -24,7 +24,8 @@ ai/
 └── tests/
 ```
 
-`contracts.py` must define the 4 functions and the 7 segment codes:
+`contracts.py` (W1-AI-01) is the agreement with Raihan on what the AI functions take in and give back,
+so he can connect them before they are finished. It must define the 4 functions and the 7 segment codes:
 - `classify_email(email) -> Classification`
 - `extract_details(email) -> EmailDetails`
 - `parse_cv(pdf_bytes) -> CVProfile`
@@ -36,5 +37,5 @@ Joint task with Raihan: connect this package to the backend through
 
 ## Your PM tasks (not files in this folder)
 W1-PM-01 kick-off · W1-PM-02 repo + branch protection · W1-PM-03 README, PR template, CODEOWNERS ·
-W1-PM-04 UM IT request (`docs/um-it-request.md`) · W2-PM-01 follow up UM IT · W2-PM-02 release v0.2 ·
+W2-PM-02 release v0.2 ·
 W3-PM-01 feature freeze + v0.3 · W4-PM-01 go/no-go + v1.0 · W4-PM-02 launch and demo

@@ -10,7 +10,6 @@ docs/
 ├── 04-api-contract.md          SHARED: Raihan + Wendi + Iqbal · W1-BE-03 · freeze 28 Oct
 ├── 05-process-models.md        W2-SA-01
 ├── 06-acceptance-criteria.md   W2-SA-02 (with QA)
-├── um-it-request.md            W1-PM-04 (Iqbal writes, with your requirement summary and Raihan's permission list)
 ├── pilot-plan.md               W3-SA-02 (with QA)
 ├── user-guide.md               W3-SA-01 draft · W4-SA-01 final
 └── img/                        diagrams as PNG (use case, ERD, process models)
