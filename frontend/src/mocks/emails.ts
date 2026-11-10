@@ -1,0 +1,48 @@
+import type { Email } from '../types/api'
+
+export const mockEmails: Email[] = [
+  {
+    id: 101,
+    sender_name: 'Faculty of Computer Science',
+    subject: 'Hackathon registration closes soon',
+    snippet: 'Register your team before 5 Nov...',
+    received_at: '2026-11-01T09:30:00+08:00',
+    is_read: false,
+    segment: 'HACKATHON',
+    deadline: '2026-11-05T23:59:00+08:00',
+    recommendation: 'for_you',
+  },
+  {
+    id: 102,
+    sender_name: 'UM Scholarship Office',
+    subject: 'Yayasan scholarship applications open',
+    snippet: 'Applications are open for undergraduates...',
+    received_at: '2026-10-31T10:00:00+08:00',
+    is_read: false,
+    segment: 'SCHOLARSHIP_CAREER',
+    deadline: '2026-11-20T17:00:00+08:00',
+    recommendation: 'for_you',
+  },
+  {
+    id: 103,
+    sender_name: 'Robotics Club',
+    subject: 'Open day this Saturday',
+    snippet: 'Come and see our latest projects...',
+    received_at: '2026-11-09T14:00:00+08:00',
+    is_read: true,
+    segment: 'CLUB',
+    deadline: null,
+    recommendation: null,
+  },
+  {
+    id: 104,
+    sender_name: 'Registrar Office',
+    subject: 'Exam timetable released',
+    snippet: 'The final exam timetable is now online...',
+    received_at: '2026-11-08T08:00:00+08:00',
+    is_read: true,
+    segment: 'UM_NOTICE',
+    deadline: null,
+    recommendation: null,
+  },
+]

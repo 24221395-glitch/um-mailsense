@@ -1,3 +1,15 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import InboxPage from './pages/InboxPage'
+import LoginPage from './pages/LoginPage'
+
 export default function App() {
-  return <h1 className="text-3xl font-bold text-blue-700">MailSense</h1>
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/inbox" element={<InboxPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
