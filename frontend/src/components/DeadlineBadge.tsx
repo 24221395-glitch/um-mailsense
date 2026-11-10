@@ -1,6 +1,6 @@
 type DeadlineBadgeProps = {
   deadline: string
-  now?: Date
+  now: Date
 }
 
 function daysUntil(deadline: string, now: Date): number {
@@ -8,7 +8,7 @@ function daysUntil(deadline: string, now: Date): number {
   return Math.ceil(ms / (1000 * 60 * 60 * 24))
 }
 
-export default function DeadlineBadge({ deadline, now = new Date() }: DeadlineBadgeProps) {
+export default function DeadlineBadge({ deadline, now }: DeadlineBadgeProps) {
   const days = daysUntil(deadline, now)
   const date = new Date(deadline).toLocaleDateString([], { day: 'numeric', month: 'short' })
 
