@@ -15,6 +15,7 @@ os.environ.update(
     GOOGLE_CLIENT_SECRET="g-secret",
     ALLOWED_EMAIL_DOMAINS="",
     ADMIN_EMAILS="",
+    LLM_API_KEY="",  # tests never call the real LLM
 )
 
 from fastapi.testclient import TestClient  # noqa: E402

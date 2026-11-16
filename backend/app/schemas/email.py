@@ -27,12 +27,18 @@ class EmailOut(BaseModel):
 class EmailDetailOut(EmailOut):
     body_text: str
     web_link: str | None
+    event_date: datetime | None
     venue: str | None
     organiser: str | None
     registration_link: str | None
     segment_confidence: float | None
     segment_is_manual: bool
+    segment_reason: str | None
     recommendation_reason: str | None
+
+    @field_serializer("event_date")
+    def _utc_event(self, dt: datetime | None):
+        return as_utc(dt).isoformat() if dt else None
 
 
 class EmailPage(BaseModel):
