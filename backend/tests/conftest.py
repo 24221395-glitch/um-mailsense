@@ -16,7 +16,16 @@ os.environ.update(
     ALLOWED_EMAIL_DOMAINS="",
     ADMIN_EMAILS="",
     LLM_API_KEY="",  # tests never call the real LLM
+    # never pick up the developer's backend/.env values
+    ENVIRONMENT="development",
+    ENCRYPTION_KEY="",
+    DEMO_MODE="false",
+    SERVERLESS="false",
+    CRON_SECRET="",
+    ADS_REQUIRE_APPROVAL="false",
+    SYNC_INTERVAL_MINUTES="10",
 )
+os.environ.pop("VERCEL", None)
 
 from fastapi.testclient import TestClient  # noqa: E402
 

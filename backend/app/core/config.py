@@ -1,7 +1,9 @@
 """App settings, read from environment variables or backend/.env (never commit .env)."""
 
+import os
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +12,7 @@ class Settings(BaseSettings):
 
     # General
     environment: str = "development"  # "production" turns on secure cookies
+    # SQLite locally; PostgreSQL (e.g. Neon) in production: postgresql://user:pass@host/db
     database_url: str = "sqlite:///./mailsense.db"
     backend_url: str = "http://localhost:8000"
     frontend_url: str = "http://localhost:5173"
@@ -56,6 +59,25 @@ class Settings(BaseSettings):
     sync_interval_minutes: int = 10
     sync_max_messages: int = 50
     sync_enabled: bool = True
+
+    # Serverless hosting (Vercel): no background loop or background tasks. Work runs inside
+    # requests instead (see /emails/process and the daily cron). Auto-on when VERCEL is set.
+    serverless: bool = False
+    # Vercel Cron sends "Authorization: Bearer <CRON_SECRET>" to /api/v1/cron/sync
+    cron_secret: str = ""
+
+    @field_validator("database_url")
+    @classmethod
+    def _driver(cls, v: str) -> str:
+        """Neon/Heroku style URLs -> SQLAlchemy with the psycopg 3 driver."""
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix) :]
+        return v
+
+    @property
+    def is_serverless(self) -> bool:
+        return self.serverless or bool(os.environ.get("VERCEL"))
 
     @property
     def is_production(self) -> bool:

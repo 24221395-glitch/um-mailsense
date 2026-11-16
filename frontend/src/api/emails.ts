@@ -1,5 +1,5 @@
 import { mockEmails } from '../mocks/emails'
-import type { EmailDetail, EmailPage, SegmentCount } from '../types/api'
+import type { EmailDetail, EmailPage, ProcessResult, SegmentCount } from '../types/api'
 import { USE_MOCKS, api } from './client'
 
 export type EmailQuery = {
@@ -50,7 +50,16 @@ export function updateEmail(
   return api<EmailDetail>(`/emails/${id}`, { method: 'PATCH', body: JSON.stringify(changes) })
 }
 
-export function syncNow(): Promise<{ new_emails: number }> {
+/** Fetch new mail. With ifStale, only if the last sync is older than the sync interval. */
+export function syncNow(ifStale = false): Promise<{ new_emails: number }> {
   if (USE_MOCKS) return Promise.resolve({ new_emails: 0 })
-  return api<{ new_emails: number }>('/emails/sync', { method: 'POST' })
+  return api<{ new_emails: number }>(`/emails/sync${ifStale ? '?if_stale=true' : ''}`, {
+    method: 'POST',
+  })
+}
+
+/** Ask the server to sort the next small batch of emails with the AI. */
+export function processEmails(batch = 8): Promise<ProcessResult> {
+  if (USE_MOCKS) return Promise.resolve({ processed: 0, unsorted: 0, unscored: 0, ai_ready: true })
+  return api<ProcessResult>(`/emails/process?batch=${batch}`, { method: 'POST' })
 }

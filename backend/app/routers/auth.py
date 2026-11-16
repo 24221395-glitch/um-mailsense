@@ -30,6 +30,7 @@ from app.core.security import (
 from app.graph.mail_sync import sync_user_by_id
 from app.models import OAuthAccount, User
 from app.schemas.auth import ProvidersOut, UserOut
+from app.services.tasks import defer
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -168,7 +169,7 @@ def callback(
     current_user_id = read_session_token(session) if session else None
     user = _save_account(db, provider, result, current_user_id)
 
-    background.add_task(sync_user_by_id, user.id)  # first inbox pull right away
+    defer(background, sync_user_by_id, user.id)  # first inbox pull right away
     response = _to_frontend(_safe_next(saved.get("next")))
     response.delete_cookie(cookie_name, path="/")
     set_session_cookie(response, user.id)

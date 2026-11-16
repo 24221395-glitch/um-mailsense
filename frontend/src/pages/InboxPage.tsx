@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getMe, signIn } from '../api/auth'
 import { ApiError } from '../api/client'
-import { getSegmentCounts, listEmails, syncNow } from '../api/emails'
+import { getSegmentCounts, listEmails, processEmails, syncNow } from '../api/emails'
 import { getProfile } from '../api/profile'
 import EmailCard from '../components/EmailCard'
 import SegmentTabs from '../components/SegmentTabs'
 import { RefreshIcon, SEGMENT_ICONS, SparkleIcon } from '../components/icons'
 import { SEGMENT_ORDER, UNSORTED, segmentLabel } from '../segments'
-import type { Email, SegmentCount, User } from '../types/api'
+import type { Email, ProcessResult, SegmentCount, User } from '../types/api'
 
 const FOR_YOU = 'FOR_YOU'
 
@@ -30,7 +30,10 @@ export default function InboxPage() {
   const [counts, setCounts] = useState<SegmentCount[]>([])
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
-  const [polls, setPolls] = useState(0)
+  const [checking, setChecking] = useState(true) // looking for new mail on open
+  const [work, setWork] = useState<ProcessResult | null>(null) // AI work left
+  const [stalls, setStalls] = useState(0)
+  const opened = useRef(false)
   const [hasProfile, setHasProfile] = useState<boolean | null>(null)
 
   const handleError = useCallback(
@@ -70,19 +73,42 @@ export default function InboxPage() {
     load()
   }, [load])
 
-  // Sync and AI sorting run in the background. Poll while waiting for the first emails
-  // (~30 s) or while some are still "Sorting…" (~3 min), then stop.
-  const unsortedCount = counts.find((c) => c.code === null)?.total ?? 0
-  const waitingForFirstSync = !loading && emails.length === 0 && activeCode === 'ALL' && polls < 10
-  const waitingForAi = !loading && unsortedCount > 0 && polls < 60
+  // On open: fetch new mail if a sync is due, then start sorting. This replaces a
+  // background timer, so it also works on serverless hosting.
   useEffect(() => {
-    if (!waitingForFirstSync && !waitingForAi) return
-    const timer = window.setTimeout(() => {
-      setPolls((n) => n + 1)
-      load()
-    }, 3000)
+    if (opened.current) return
+    opened.current = true
+    syncNow(true)
+      .catch(handleError)
+      .finally(async () => {
+        setChecking(false)
+        await load()
+        processEmails()
+          .then(setWork)
+          .catch(() => {})
+      })
+  }, [handleError, load])
+
+  // While emails are "Sorting…", ask the server to process the next small batch.
+  // Stop after 3 calls without progress (or when the AI is not set up).
+  const pending = work ? work.unsorted + work.unscored : 0
+  const keepWorking = !!work && work.ai_ready && pending > 0 && stalls < 3
+  useEffect(() => {
+    if (!keepWorking || !work) return
+    const timer = window.setTimeout(async () => {
+      try {
+        const next = await processEmails()
+        const stuck = next.unsorted === work.unsorted && next.unscored === work.unscored
+        setStalls((n) => (stuck ? n + 1 : 0))
+        setWork(next)
+        load()
+      } catch {
+        setStalls((n) => n + 1)
+      }
+    }, 800)
     return () => window.clearTimeout(timer)
-  }, [waitingForFirstSync, waitingForAi, polls, load])
+  }, [keepWorking, work, load])
+  const unsortedCount = counts.find((c) => c.code === null)?.total ?? 0
 
   const byCode = useMemo(() => new Map(counts.map((c) => [c.code ?? UNSORTED, c])), [counts])
   const tiles = SEGMENT_ORDER.filter((c) => c !== 'NOT_FOR_ME')
@@ -110,10 +136,11 @@ export default function InboxPage() {
 
   async function handleSync() {
     setSyncing(true)
-    setPolls(0)
+    setStalls(0)
     try {
       await syncNow()
       await load()
+      setWork(await processEmails())
     } catch (err) {
       handleError(err)
     } finally {
@@ -170,6 +197,21 @@ export default function InboxPage() {
         </p>
       )}
 
+      {keepWorking && work && (
+        <p role="status" className="mb-4 flex items-center gap-2 text-sm text-accent">
+          <SparkleIcon className="h-4 w-4 animate-spin" />
+          {work.unsorted > 0
+            ? `Sorting ${work.unsorted} email${work.unsorted === 1 ? '' : 's'} with AI…`
+            : 'Finding what is for you…'}
+        </p>
+      )}
+      {work && !work.ai_ready && unsortedCount > 0 && (
+        <p role="status" className="mb-4 rounded-xl bg-warn-soft p-3 text-sm text-warn">
+          AI sorting is not available right now. Your emails are safe and will be sorted once it is
+          back.
+        </p>
+      )}
+
       {hasProfile === false && (
         <Link
           to="/profile"
@@ -214,8 +256,8 @@ export default function InboxPage() {
         <p className="py-10 text-center text-sm text-faint">Loading your inbox…</p>
       ) : emails.length === 0 ? (
         <p className="py-10 text-center text-sm text-faint">
-          {waitingForFirstSync
-            ? 'Fetching your emails… this can take a moment.'
+          {checking
+            ? 'Checking for new mail…'
             : activeCode === FOR_YOU
               ? hasProfile
                 ? 'Nothing matched your profile yet. Recommendations update as mail arrives.'
