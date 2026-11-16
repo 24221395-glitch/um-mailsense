@@ -8,6 +8,7 @@ type EmailCardProps = {
   segmentLabel: string
   deadlineLabel?: string
   recommendation?: 'for_you' | 'not_for_you' | null
+  recommendationReason?: string
   onClick?: (id: number) => void
 }
 
@@ -21,6 +22,7 @@ export default function EmailCard({
   segmentLabel,
   deadlineLabel,
   recommendation,
+  recommendationReason,
   onClick,
 }: EmailCardProps) {
   const time = new Date(receivedAt).toLocaleTimeString([], {
@@ -40,7 +42,9 @@ export default function EmailCard({
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <span className={`truncate text-sm ${isRead ? 'font-medium' : 'font-semibold'} text-slate-900`}>
+            <span
+              className={`truncate text-sm ${isRead ? 'font-medium' : 'font-semibold'} text-slate-900`}
+            >
               {senderName}
             </span>
             <time className="shrink-0 text-xs text-slate-500">{time}</time>
@@ -52,7 +56,10 @@ export default function EmailCard({
               {segmentLabel}
             </span>
             {recommendation === 'for_you' && (
-              <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+              <span
+                title={recommendationReason}
+                className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700"
+              >
                 For you
               </span>
             )}
@@ -62,6 +69,9 @@ export default function EmailCard({
               </span>
             )}
           </div>
+          {recommendation === 'for_you' && recommendationReason && (
+            <p className="mt-2 text-xs text-green-700">{recommendationReason}</p>
+          )}
         </div>
       </div>
     </button>
