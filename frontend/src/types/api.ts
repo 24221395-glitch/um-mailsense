@@ -24,6 +24,8 @@ export type EmailDetail = Email & {
   registration_link: string | null
   segment_confidence: number | null
   segment_is_manual: boolean
+  segment_reason: string | null
+  event_date: string | null
   recommendation_reason: string | null
 }
 
@@ -157,4 +159,20 @@ export type Stats = {
     prompt_tokens?: number
     completion_tokens?: number
   }
+}
+
+export type CalendarItem = {
+  kind: 'email' | 'ad'
+  id: number
+  title: string
+  source: string
+  segment: string | null
+  date: string
+  date_type: 'deadline' | 'event'
+  link: string | null
+}
+
+export type NotificationSettings = {
+  enabled: boolean
+  muted_segments: string[]
 }

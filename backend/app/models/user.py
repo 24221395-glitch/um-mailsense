@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, ForeignKey, String, UniqueConstraint, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base, UTCDateTime
@@ -21,6 +21,12 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="student")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     last_synced_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+    # Deadline reminders (FR-35/36): on/off, and segments the student muted.
+    notify_enabled: Mapped[bool] = mapped_column(default=True, server_default=true())
+    notify_muted_segments: Mapped[list[str]] = mapped_column(
+        JSON, default=list, server_default="[]"
+    )
 
     accounts: Mapped[list["OAuthAccount"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"

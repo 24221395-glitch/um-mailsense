@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getMe, signIn, signOut } from '../api/auth'
 import { ApiError } from '../api/client'
 import { getSegmentCounts, listEmails, syncNow } from '../api/emails'
@@ -19,7 +19,8 @@ function formatDay(iso: string): string {
 export default function InboxPage() {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
-  const [activeCode, setActiveCode] = useState('ALL')
+  const [params] = useSearchParams()
+  const [activeCode, setActiveCode] = useState(() => params.get('segment') || 'ALL')
   const [emails, setEmails] = useState<Email[]>([])
   const [counts, setCounts] = useState<SegmentCount[]>([])
   const [loading, setLoading] = useState(true)
@@ -207,6 +208,8 @@ export default function InboxPage() {
                 deadlineLabel={email.deadline ? `Due ${formatDay(email.deadline)}` : undefined}
                 recommendation={email.recommendation}
                 recommendationReason={email.recommendation_reason ?? undefined}
+                isOfficial={email.segment === 'UM_NOTICE'}
+                onClick={(id) => navigate(`/emails/${id}`)}
               />
             </li>
           ))}

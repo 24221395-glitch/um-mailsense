@@ -9,6 +9,7 @@ type EmailCardProps = {
   deadlineLabel?: string
   recommendation?: 'for_you' | 'not_for_you' | null
   recommendationReason?: string
+  isOfficial?: boolean
   onClick?: (id: number) => void
 }
 
@@ -23,6 +24,7 @@ export default function EmailCard({
   deadlineLabel,
   recommendation,
   recommendationReason,
+  isOfficial = false,
   onClick,
 }: EmailCardProps) {
   const time = new Date(receivedAt).toLocaleTimeString([], {
@@ -34,7 +36,9 @@ export default function EmailCard({
     <button
       type="button"
       onClick={() => onClick?.(id)}
-      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:shadow-md"
+      className={`w-full rounded-2xl border bg-white p-4 text-left shadow-sm hover:shadow-md ${
+        isOfficial ? 'border-amber-300 border-l-4 border-l-amber-400' : 'border-slate-200'
+      }`}
     >
       <div className="flex items-start gap-3">
         {!isRead && (
@@ -52,7 +56,11 @@ export default function EmailCard({
           <p className="mt-1 truncate text-sm font-semibold text-slate-900">{subject}</p>
           <p className="mt-1 line-clamp-2 text-xs text-slate-500">{snippet}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                isOfficial ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'
+              }`}
+            >
               {segmentLabel}
             </span>
             {recommendation === 'for_you' && (
