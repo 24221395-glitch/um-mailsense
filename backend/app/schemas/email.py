@@ -61,3 +61,10 @@ class EmailUpdate(BaseModel):
 
 class SyncResult(BaseModel):
     new_emails: int
+
+
+class ProcessResult(BaseModel):
+    processed: int
+    unsorted: int  # emails still waiting for the AI
+    unscored: int  # sorted emails still waiting for a "for you" score
+    ai_ready: bool  # False when no LLM_API_KEY is configured

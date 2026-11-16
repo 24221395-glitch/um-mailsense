@@ -32,6 +32,13 @@ export const reportAd = (id: number, reason: string) =>
     body: JSON.stringify({ reason }),
   })
 
+/** Compute "for you" scores for these posts now. */
+export const scoreAds = (adIds: number[]) =>
+  api<{ scored: number }>('/ads/score', {
+    method: 'POST',
+    body: JSON.stringify({ ad_ids: adIds.slice(0, 30) }),
+  })
+
 export const myAds = () => api<MyAd[]>('/ads/mine')
 
 export const createAd = (input: AdInput) =>

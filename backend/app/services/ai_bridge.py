@@ -23,6 +23,7 @@ SEGMENTS = {s.value for s in ai.Segment}
 _user_locks: dict[int, threading.Lock] = {}
 _locks_guard = threading.Lock()
 _configured = False
+_warned = False
 
 
 def configure() -> bool:
@@ -30,7 +31,10 @@ def configure() -> bool:
     global _configured
     s = get_settings()
     if not s.llm_api_key:
-        log.warning("LLM_API_KEY not set: emails will stay unsorted until it is configured")
+        global _warned
+        if not _warned:
+            log.warning("LLM_API_KEY not set: emails will stay unsorted until it is configured")
+            _warned = True
         return False
     ai.configure(
         ai.LLMClient(
@@ -170,8 +174,6 @@ def process_pending(db: Session, user: User, limit: int = 200) -> int:
 
 # --- CV profile and recommendations (W3-AI-03) --------------------------------------------
 
-RECOMMEND_LIMIT = 150  # newest emails scored per run; older mail is not worth the cost
-
 
 def parse_cv(data: bytes) -> ai.CVProfile:
     """Raises ai.CVParseError (bad file) or ai.LLMError (AI unavailable)."""
@@ -215,7 +217,7 @@ def reset_recommendations(db: Session, user: User) -> None:
     db.commit()
 
 
-def recommend_pending(db: Session, user: User) -> int:
+def recommend_pending(db: Session, user: User, limit: int = 150) -> int:
     """Label sorted emails "for you" / "not for you" against the user's profile (FR-23/24/25)."""
     profile = _profile_for(db, user)
     if profile is None:
@@ -234,7 +236,7 @@ def recommend_pending(db: Session, user: User) -> int:
                 Email.recommendation.is_(None),
             )
             .order_by(Email.received_at.desc())
-            .limit(RECOMMEND_LIMIT)
+            .limit(limit)
         ).all()
         if not emails:
             return 0
@@ -311,3 +313,32 @@ def recommend_ads(db: Session, user: User, ad_ids: list[int]) -> int:
 def forget_ad_scores(db: Session, ad_id: int) -> None:
     """A post was edited: everyone's score for it must be recomputed."""
     db.execute(delete(AdRecommendation).where(AdRecommendation.ad_id == ad_id))
+
+
+def pending_work(db: Session, user: User) -> dict:
+    """How much AI work is left for this user (drives the frontend's "Sorting…" polling)."""
+    from sqlalchemy import func
+
+    unsorted = (
+        db.scalar(
+            select(func.count(Email.id)).where(
+                Email.user_id == user.id,
+                Email.classified_at.is_(None),
+                Email.ai_attempts < get_settings().ai_max_attempts,
+            )
+        )
+        or 0
+    )
+    unscored = 0
+    if _profile_for(db, user) is not None:
+        unscored = (
+            db.scalar(
+                select(func.count(Email.id)).where(
+                    Email.user_id == user.id,
+                    Email.classified_at.is_not(None),
+                    Email.recommendation.is_(None),
+                )
+            )
+            or 0
+        )
+    return {"unsorted": unsorted, "unscored": unscored, "ai_ready": _configured or configure()}

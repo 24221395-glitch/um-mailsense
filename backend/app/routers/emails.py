@@ -7,16 +7,19 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.graph.mail_sync import process_user_ai, sync_user
+from app.graph.mail_sync import is_stale, process_user_ai, sync_user
 from app.models import Email, User
 from app.schemas.email import (
     EmailDetailOut,
     EmailPage,
     EmailUpdate,
+    ProcessResult,
     SegmentCount,
     SyncResult,
 )
+from app.services import ai_bridge
 from app.services.ai_bridge import SEGMENTS
+from app.services.tasks import defer
 
 router = APIRouter(prefix="/api/v1/emails", tags=["emails"])
 
@@ -78,13 +81,41 @@ def segment_counts(user: User = Depends(get_current_user), db: Session = Depends
 @router.post("/sync", response_model=SyncResult)
 async def sync_now(
     background: BackgroundTasks,
+    if_stale: bool = False,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Fetch new mail now; the AI sorts it in the background (it shows as "Sorting…")."""
+    """Fetch new mail now; the AI sorts it afterwards (it shows as "Sorting…").
+
+    `if_stale=true` (sent when the inbox opens) only syncs if the last sync is older than
+    SYNC_INTERVAL_MINUTES — this replaces the background timer on serverless hosting.
+    """
+    if if_stale and not is_stale(user):
+        return SyncResult(new_emails=0)
     new = await run_in_threadpool(sync_user, db, user)
-    background.add_task(process_user_ai, user.id)
+    defer(background, process_user_ai, user.id)
     return SyncResult(new_emails=new)
+
+
+@router.post("/process", response_model=ProcessResult)
+async def process_now(
+    batch: int = Query(8, ge=1, le=25),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Sort a small batch of this user's emails with the AI, then score a batch for "For you".
+
+    The inbox calls this repeatedly while emails show "Sorting…". Small batches keep each
+    request short (serverless time limits) and spread the LLM rate limit.
+    """
+
+    def work() -> int:
+        done = ai_bridge.process_pending(db, user, limit=batch)
+        ai_bridge.recommend_pending(db, user, limit=30)
+        return done
+
+    processed = await run_in_threadpool(work)
+    return ProcessResult(processed=processed, **ai_bridge.pending_work(db, user))
 
 
 def _owned(db: Session, user: User, email_id: int) -> Email:
@@ -122,6 +153,6 @@ def update_email(
         email.segment_reason = "Moved by you"
         # the "for you" label depends on the segment: score it again
         email.recommendation = email.recommendation_score = email.recommendation_reason = None
-        background.add_task(process_user_ai, user.id)
+        defer(background, process_user_ai, user.id)
     db.commit()
     return email
