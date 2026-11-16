@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAd, listAds, reportAd, saveAd, unsaveAd } from '../api/ads'
+import { getAd, listAds, reportAd, saveAd, scoreAds, unsaveAd } from '../api/ads'
 import { ApiError } from '../api/client'
 import AdCard from '../components/AdCard'
 import SegmentTabs from '../components/SegmentTabs'
@@ -167,7 +167,6 @@ export default function AdBoardPage() {
   const [ads, setAds] = useState<Ad[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState<Ad | null>(null)
-  const [refetched, setRefetched] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -191,16 +190,15 @@ export default function AdBoardPage() {
     return () => window.clearTimeout(timer)
   }, [load, q])
 
-  // "For you" scores are computed in the background on first view: refresh once.
-  const unscored = ads.some((a) => a.recommendation === null)
+  // Posts without a "for you" score yet: ask the server to score them, then refresh once.
+  const unscoredIds = ads.filter((a) => a.recommendation === null).map((a) => a.id)
+  const unscoredKey = unscoredIds.join(',')
   useEffect(() => {
-    if (!unscored || refetched) return
-    const timer = window.setTimeout(() => {
-      setRefetched(true)
-      load()
-    }, 4000)
-    return () => window.clearTimeout(timer)
-  }, [unscored, refetched, load])
+    if (!unscoredKey) return
+    scoreAds(unscoredKey.split(',').map(Number))
+      .then(({ scored }) => (scored > 0 ? load() : undefined))
+      .catch(() => {})
+  }, [unscoredKey, load])
 
   async function toggleSave(ad: Ad) {
     const next = !ad.is_saved

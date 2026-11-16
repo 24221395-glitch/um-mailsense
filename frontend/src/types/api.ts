@@ -36,6 +36,13 @@ export type EmailPage = {
   page_size: number
 }
 
+export type ProcessResult = {
+  processed: number
+  unsorted: number
+  unscored: number
+  ai_ready: boolean
+}
+
 export type SegmentCount = {
   code: string | null
   total: number
@@ -74,6 +81,7 @@ export type Profile = ProfileInput & {
 export type Providers = {
   microsoft: boolean
   google: boolean
+  demo?: boolean // local demo sign-in (DEMO_MODE=true on the server)
 }
 
 export type Organisation = {

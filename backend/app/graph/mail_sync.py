@@ -6,9 +6,11 @@ POST /api/v1/emails/sync. Each email is stored once (unique per account + provid
 
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth import google_auth, msal_auth
@@ -46,6 +48,8 @@ def _access_token(db: Session, account: OAuthAccount) -> str:
 
 def sync_account(db: Session, account: OAuthAccount) -> int:
     """Fetch and store new mail for one mailbox. Returns how many emails were new."""
+    if account.provider not in _FETCHERS:  # e.g. the local demo account
+        return 0
     latest = db.scalar(select(func.max(Email.received_at)).where(Email.account_id == account.id))
     since = (
         as_utc(latest) - timedelta(minutes=5)
@@ -78,7 +82,11 @@ def sync_account(db: Session, account: OAuthAccount) -> int:
         db.add(Email(user_id=account.user_id, account_id=account.id, **f.__dict__))
         new += 1
     account.needs_reconnect = False
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:  # another request synced the same mail at the same moment
+        db.rollback()
+        return 0
     return new
 
 
@@ -90,7 +98,17 @@ def sync_user(db: Session, user: User) -> int:
     return new
 
 
-def process_user_ai(user_id: int) -> int:
+def is_stale(user: User) -> bool:
+    """True when the user's mail has not been synced within SYNC_INTERVAL_MINUTES."""
+    if user.last_synced_at is None:
+        return True
+    age = datetime.now(UTC) - as_utc(user.last_synced_at)
+    return age > timedelta(minutes=get_settings().sync_interval_minutes)
+
+
+def process_user_ai(
+    user_id: int, classify_limit: int = 200, recommend_limit: int | None = None
+) -> int:
     """Run the AI over the user's unsorted emails. Never raises (NFR-24)."""
     from app.services import ai_bridge
 
@@ -99,8 +117,11 @@ def process_user_ai(user_id: int) -> int:
         if not user:
             return 0
         try:
-            done = ai_bridge.process_pending(db, user)
-            ai_bridge.recommend_pending(db, user)
+            done = ai_bridge.process_pending(db, user, limit=classify_limit)
+            if recommend_limit is None:
+                ai_bridge.recommend_pending(db, user)
+            else:
+                ai_bridge.recommend_pending(db, user, limit=recommend_limit)
             return done
         except Exception:
             log.exception("AI processing failed for user %s; will retry next sync", user_id)
@@ -116,14 +137,22 @@ def sync_user_by_id(user_id: int) -> int:
     return new
 
 
-def sync_everyone() -> None:
+def sync_everyone(time_budget_s: float | None = None) -> dict:
+    """Sync + AI for every user. With a time budget (serverless cron), stop early and
+    report how many users are left for the next run."""
+    started = time.monotonic()
     with SessionLocal() as db:
-        user_ids = list(db.scalars(select(User.id)))
+        user_ids = list(db.scalars(select(User.id).order_by(User.last_synced_at.asc())))
+    done = 0
     for user_id in user_ids:
+        if time_budget_s is not None and time.monotonic() - started > time_budget_s:
+            break
         try:
             sync_user_by_id(user_id)
         except Exception:
             log.exception("Sync failed for user %s", user_id)
+        done += 1
+    return {"users": len(user_ids), "synced": done}
 
 
 async def run_scheduler() -> None:

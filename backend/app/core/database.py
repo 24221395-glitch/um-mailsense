@@ -45,6 +45,12 @@ def _enable_sqlite_foreign_keys(dbapi_conn, _record):
 def make_engine(url: str, **kwargs):
     if url.startswith("sqlite"):
         kwargs.setdefault("connect_args", {"check_same_thread": False})
+    else:
+        # Serverless functions come and go: check connections before use, keep the pool small
+        kwargs.setdefault("pool_pre_ping", True)
+        kwargs.setdefault("pool_size", 3)
+        kwargs.setdefault("max_overflow", 2)
+        kwargs.setdefault("pool_recycle", 300)
     eng = create_engine(url, **kwargs)
     if url.startswith("sqlite"):
         event.listen(eng, "connect", _enable_sqlite_foreign_keys)

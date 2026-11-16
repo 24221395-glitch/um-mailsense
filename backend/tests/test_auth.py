@@ -39,7 +39,11 @@ def _start_google(client):
 
 def test_health_and_providers(client):
     assert client.get("/api/v1/health").json() == {"status": "ok"}
-    assert client.get("/api/v1/auth/providers").json() == {"microsoft": True, "google": True}
+    assert client.get("/api/v1/auth/providers").json() == {
+        "microsoft": True,
+        "google": True,
+        "demo": False,
+    }
 
 
 def test_me_requires_login(client):

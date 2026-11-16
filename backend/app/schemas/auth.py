@@ -23,3 +23,4 @@ class UserOut(BaseModel):
 class ProvidersOut(BaseModel):
     microsoft: bool
     google: bool
+    demo: bool = False

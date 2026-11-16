@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { getMe, getProviders, signIn } from '../api/auth'
+import { getMe, getProviders, signIn, signInDemo } from '../api/auth'
 import {
   BankIcon,
   CalendarIcon,
@@ -285,15 +285,26 @@ export default function LoginPage() {
               </a>
               <SignInButton disabled={!providers.microsoft} />
             </div>
-            {providers.google && (
-              <button
-                type="button"
-                onClick={() => signIn('google')}
-                className="mt-4 inline-flex items-center gap-2 text-sm text-muted hover:text-accent"
-              >
-                <GoogleLogo /> or continue with Google
-              </button>
-            )}
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+              {providers.google && (
+                <button
+                  type="button"
+                  onClick={() => signIn('google')}
+                  className="inline-flex items-center gap-2 text-sm text-muted hover:text-accent"
+                >
+                  <GoogleLogo /> or continue with Google
+                </button>
+              )}
+              {providers.demo && (
+                <button
+                  type="button"
+                  onClick={signInDemo}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-2"
+                >
+                  <SparkleIcon className="h-4 w-4" /> Try the demo (sample data)
+                </button>
+              )}
+            </div>
 
             <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-ink-2">
               <li className="flex items-center gap-2">

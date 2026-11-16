@@ -11,6 +11,7 @@ from app.graph.mail_sync import process_user_ai
 from app.models import CVProfile, User
 from app.schemas.profile import ProfileIn, ProfileOut
 from app.services import ai_bridge
+from app.services.tasks import defer
 
 router = APIRouter(prefix="/api/v1/profile", tags=["profile"])
 
@@ -55,7 +56,7 @@ def update_profile(
         source=existing.source if existing else "manual",
         summary=existing.summary if existing else "",
     )
-    background.add_task(process_user_ai, user.id)
+    defer(background, process_user_ai, user.id)
     return row
 
 
@@ -90,7 +91,7 @@ async def upload_cv(
         source="cv",
         cv_filename=(file.filename or "cv")[:255],
     )
-    background.add_task(process_user_ai, user.id)
+    defer(background, process_user_ai, user.id)
     return row
 
 

@@ -3,6 +3,7 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -14,6 +15,7 @@ from app.models import AD_CATEGORIES, Ad, AdRecommendation, AdReport, AdSave, Or
 from app.routers.organisations import require_approved_org
 from app.schemas.ads import AdIn, AdOut, AdPage, MyAdOut, ReportIn
 from app.services import ai_bridge
+from app.services.tasks import defer
 
 router = APIRouter(prefix="/api/v1/ads", tags=["ads"])
 
@@ -109,7 +111,7 @@ def list_ads(
 
     missing = [i for i in ids if i not in recs]
     if missing:
-        background.add_task(_score_in_background, user.id, missing)
+        defer(background, _score_in_background, user.id, missing)
     items = [to_out(a, saved_ids, recs) for a in ads]
     return AdPage(items=items, total=total, page=page, page_size=page_size)
 
@@ -249,3 +251,17 @@ def report_ad(
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "You already reported this post") from None
     return {"status": "reported"}
+
+
+class ScoreIn(BaseModel):
+    ad_ids: list[int] = Field(max_length=30)
+
+
+@router.post("/score")
+def score_ads(body: ScoreIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Compute "for you" scores for these posts now (used on serverless hosting, where
+    background scoring is not available). Only posts visible on the board are scored."""
+    visible = list(
+        db.scalars(select(Ad.id).join(Ad.organisation).where(Ad.id.in_(body.ad_ids), *_live()))
+    )
+    return {"scored": ai_bridge.recommend_ads(db, user, visible)}

@@ -1,0 +1,10 @@
+# Not needed on Vercel
+*.safetensors
+*.gguf
+backend/tests
+backend/migrations
+ai/tests
+ai/eval
+qa
+design
+docs
