@@ -83,30 +83,35 @@ def sync_account(db: Session, account: OAuthAccount) -> int:
 
 
 def sync_user(db: Session, user: User) -> int:
+    """Fetch new mail from all of the user's mailboxes. Returns how many emails were new."""
     new = sum(sync_account(db, acc) for acc in user.accounts)
     user.last_synced_at = datetime.now(UTC)
     db.commit()
-    if new:
-        _after_new_mail(db, user)
     return new
 
 
-def _after_new_mail(db: Session, user: User) -> None:
-    """Hand new mail to the AI (classification + extraction). Wired up in milestone 2."""
-    try:
-        from app.services import ai_bridge
+def process_user_ai(user_id: int) -> int:
+    """Run the AI over the user's unsorted emails. Never raises (NFR-24)."""
+    from app.services import ai_bridge
 
-        ai_bridge.process_pending(db, user)
-    except ImportError:
-        pass
-    except Exception:  # AI being down must never break sync (NFR-24)
-        log.exception("AI processing failed for user %s; will retry next sync", user.id)
+    with SessionLocal() as db:
+        user = db.get(User, user_id)
+        if not user:
+            return 0
+        try:
+            return ai_bridge.process_pending(db, user)
+        except Exception:
+            log.exception("AI processing failed for user %s; will retry next sync", user_id)
+            return 0
 
 
 def sync_user_by_id(user_id: int) -> int:
+    """Sync + AI, used after sign-in and by the scheduler."""
     with SessionLocal() as db:
         user = db.get(User, user_id)
-        return sync_user(db, user) if user else 0
+        new = sync_user(db, user) if user else 0
+    process_user_ai(user_id)  # also retries emails left unsorted earlier
+    return new
 
 
 def sync_everyone() -> None:

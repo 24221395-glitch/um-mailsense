@@ -53,16 +53,19 @@ export default function InboxPage() {
     load()
   }, [load])
 
-  // The first sync after sign-in runs in the background: poll for ~30 s until mail appears.
+  // Sync and AI sorting run in the background. Poll while waiting for the first emails
+  // (~30 s) or while some are still "Sorting…" (~3 min), then stop.
+  const unsortedCount = counts.find((c) => c.code === null)?.total ?? 0
   const waitingForFirstSync = !loading && emails.length === 0 && activeCode === 'ALL' && polls < 10
+  const waitingForAi = !loading && unsortedCount > 0 && polls < 60
   useEffect(() => {
-    if (!waitingForFirstSync) return
+    if (!waitingForFirstSync && !waitingForAi) return
     const timer = window.setTimeout(() => {
       setPolls((n) => n + 1)
       load()
     }, 3000)
     return () => window.clearTimeout(timer)
-  }, [waitingForFirstSync, polls, load])
+  }, [waitingForFirstSync, waitingForAi, polls, load])
 
   const tabs = useMemo(() => {
     const byCode = new Map(counts.map((c) => [c.code ?? UNSORTED, c]))
@@ -85,6 +88,7 @@ export default function InboxPage() {
 
   async function handleSync() {
     setSyncing(true)
+    setPolls(0)
     try {
       await syncNow()
       await load()

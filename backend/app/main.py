@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.graph.mail_sync import run_scheduler
 from app.routers import auth, emails
+from app.services import ai_bridge
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -20,6 +21,7 @@ async def lifespan(_app: FastAPI):
     s = get_settings()
     if s.is_production and (s.secret_key.startswith("dev-only") or not s.encryption_key):
         raise RuntimeError("Set SECRET_KEY and ENCRYPTION_KEY before running in production")
+    ai_bridge.configure()
     task = asyncio.create_task(run_scheduler()) if s.sync_enabled else None
     yield
     if task:

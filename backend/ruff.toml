@@ -7,4 +7,4 @@ ignore = ["B008"]  # FastAPI's Depends() in defaults is intended
 
 [lint.per-file-ignores]
 "tests/conftest.py" = ["E402"]
-"migrations/versions/*" = ["E501", "UP"]
+"migrations/versions/*" = ["E501", "UP", "I"]

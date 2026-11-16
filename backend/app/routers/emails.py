@@ -1,13 +1,13 @@
 """The student's synced inbox: list, filter by segment, search, read, re-segment, sync now."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.graph.mail_sync import sync_user
+from app.graph.mail_sync import process_user_ai, sync_user
 from app.models import Email, User
 from app.schemas.email import (
     EmailDetailOut,
@@ -16,18 +16,10 @@ from app.schemas.email import (
     SegmentCount,
     SyncResult,
 )
+from app.services.ai_bridge import SEGMENTS
 
 router = APIRouter(prefix="/api/v1/emails", tags=["emails"])
 
-SEGMENTS = {
-    "UM_NOTICE",
-    "HACKATHON",
-    "RESEARCH",
-    "EVENT",
-    "SCHOLARSHIP_CAREER",
-    "CLUB",
-    "NOT_FOR_ME",
-}
 UNSORTED = "UNSORTED"  # query value for emails the AI has not classified yet
 
 
@@ -84,8 +76,14 @@ def segment_counts(user: User = Depends(get_current_user), db: Session = Depends
 
 
 @router.post("/sync", response_model=SyncResult)
-async def sync_now(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def sync_now(
+    background: BackgroundTasks,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Fetch new mail now; the AI sorts it in the background (it shows as "Sorting…")."""
     new = await run_in_threadpool(sync_user, db, user)
+    background.add_task(process_user_ai, user.id)
     return SyncResult(new_emails=new)
 
 

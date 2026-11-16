@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     # Comma-separated emails that get the admin role when they sign in.
     admin_emails: str = ""
 
+    # AI — Llama 4 Scout through an OpenAI-compatible API (groq | openrouter | together)
+    llm_provider: str = "groq"
+    llm_api_key: str = ""
+    llm_model: str = ""  # empty = the provider's Llama 4 Scout model
+    llm_base_url: str = ""  # only for a provider not in the list
+    llm_daily_token_limit: int = 2_000_000  # safety cap; 0 = no limit
+    ai_max_attempts: int = 3  # give up on an email after this many failed tries
+
     # Mail sync
     sync_interval_minutes: int = 10
     sync_max_messages: int = 50

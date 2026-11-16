@@ -37,3 +37,8 @@ backend/uploads/
 
 # Local databases
 backend/*.db
+
+# Model weights (never commit)
+*.safetensors
+*.gguf
+models/
