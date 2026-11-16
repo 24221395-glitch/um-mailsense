@@ -6,6 +6,7 @@ emails stay "Sorting…" and are retried on the next sync (NFR-24).
 """
 
 import logging
+import re
 import threading
 from datetime import UTC, datetime
 
@@ -69,14 +70,46 @@ def _to_input(email: Email) -> ai.EmailInput:
     )
 
 
-def process_email(email: Email) -> None:
+_UM_STAFF = re.compile(r"@(?!siswa)([a-z0-9-]+\.)*um\.edu\.my$", re.IGNORECASE)
+
+
+def sender_rule(db: Session, email: Email) -> str | None:
+    """Feedback loop (FR-19): the segment this student last moved this sender's mail to.
+
+    UM staff mail is never auto-hidden in NOT_FOR_ME this way (protects NFR-18).
+    """
+    if not email.sender_email:
+        return None
+    segment = db.scalar(
+        select(Email.segment)
+        .where(
+            Email.user_id == email.user_id,
+            Email.sender_email == email.sender_email,
+            Email.segment_is_manual.is_(True),
+            Email.id != email.id,
+        )
+        .order_by(Email.received_at.desc())
+        .limit(1)
+    )
+    if segment == "NOT_FOR_ME" and _UM_STAFF.search(email.sender_email):
+        return None
+    return segment
+
+
+def process_email(email: Email, db: Session | None = None) -> None:
     """Classify + extract one email in place. Raises ai.LLMError on failure."""
     data = _to_input(email)
     if not email.segment_is_manual:
-        result = ai.classify_email(data)
-        email.segment = result.segment.value
-        email.segment_confidence = result.confidence
-        email.segment_reason = result.reason
+        learned = sender_rule(db, email) if db is not None else None
+        if learned:
+            email.segment = learned
+            email.segment_confidence = 1.0
+            email.segment_reason = "You moved mail from this sender here before"
+        else:
+            result = ai.classify_email(data)
+            email.segment = result.segment.value
+            email.segment_confidence = result.confidence
+            email.segment_reason = result.reason
     # Extraction costs a second call; skip mail the student will not care about.
     if email.segment != ai.Segment.NOT_FOR_ME:
         details = ai.extract_details(data)
@@ -114,7 +147,7 @@ def process_pending(db: Session, user: User, limit: int = 200) -> int:
         ).all()
         for email in pending:
             try:
-                process_email(email)
+                process_email(email, db)
                 done += 1
             except ai.BudgetExceeded:
                 log.warning("LLM daily budget reached; remaining emails wait until tomorrow")

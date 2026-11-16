@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { getMe } from '../api/auth'
+import { useDeadlineReminders } from '../hooks/useDeadlineReminders'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-full px-3 py-1.5 text-sm font-medium ${
@@ -10,6 +11,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 /** Top navigation shared by the signed-in pages. */
 export default function NavBar() {
   const [isAdmin, setIsAdmin] = useState(false)
+  useDeadlineReminders()
 
   useEffect(() => {
     getMe()
@@ -21,6 +23,12 @@ export default function NavBar() {
     <nav aria-label="Main" className="mb-4 flex gap-1 overflow-x-auto pb-1">
       <NavLink to="/inbox" className={linkClass}>
         Inbox
+      </NavLink>
+      <NavLink to="/segments" className={linkClass}>
+        Segments
+      </NavLink>
+      <NavLink to="/calendar" className={linkClass}>
+        Calendar
       </NavLink>
       <NavLink to="/board" className={linkClass}>
         Board

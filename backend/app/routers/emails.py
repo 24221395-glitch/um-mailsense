@@ -103,17 +103,25 @@ def get_email(email_id: int, user: User = Depends(get_current_user), db: Session
 def update_email(
     email_id: int,
     body: EmailUpdate,
+    background: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Mark read/unread (in MailSense only) or move to another segment (FR-18)."""
+    """Mark read/unread (in MailSense only) or move to another segment (FR-18).
+
+    A move is remembered: future mail from the same sender goes to that segment (FR-19).
+    """
     email = _owned(db, user, email_id)
     if body.is_read is not None:
         email.is_read = body.is_read
-    if body.segment is not None:
+    if body.segment is not None and body.segment != email.segment:
         if body.segment not in SEGMENTS:
             raise HTTPException(422, "Unknown segment")
         email.segment = body.segment
         email.segment_is_manual = True
+        email.segment_reason = "Moved by you"
+        # the "for you" label depends on the segment: score it again
+        email.recommendation = email.recommendation_score = email.recommendation_reason = None
+        background.add_task(process_user_ai, user.id)
     db.commit()
     return email
