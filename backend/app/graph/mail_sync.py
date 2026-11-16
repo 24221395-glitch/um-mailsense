@@ -46,6 +46,8 @@ def _access_token(db: Session, account: OAuthAccount) -> str:
 
 def sync_account(db: Session, account: OAuthAccount) -> int:
     """Fetch and store new mail for one mailbox. Returns how many emails were new."""
+    if account.provider not in _FETCHERS:  # e.g. the local demo account
+        return 0
     latest = db.scalar(select(func.max(Email.received_at)).where(Email.account_id == account.id))
     since = (
         as_utc(latest) - timedelta(minutes=5)

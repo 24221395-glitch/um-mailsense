@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # False = verified organisations publish straight away; admins can still hide/remove.
     ads_require_approval: bool = False
 
+    # Local demo: a "Try the demo" sign-in with sample data. Never allowed in production.
+    demo_mode: bool = False
+
     # Comma-separated emails that get the admin role when they sign in.
     admin_emails: str = ""
 

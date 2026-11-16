@@ -23,6 +23,11 @@ export function signIn(provider: Provider, next?: string) {
   window.location.href = `${API_BASE}/auth/${provider}/login${qs}`
 }
 
+/** Local demo only: signs in as a sample student. */
+export function signInDemo() {
+  window.location.href = `${API_BASE}/auth/demo/login`
+}
+
 export function getProviders(): Promise<Providers> {
   if (USE_MOCKS) return Promise.resolve({ microsoft: true, google: true })
   return api<Providers>('/auth/providers')
