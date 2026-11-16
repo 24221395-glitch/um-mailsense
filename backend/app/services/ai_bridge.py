@@ -10,11 +10,11 @@ import threading
 from datetime import UTC, datetime
 
 import mailsense_ai as ai
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.models import CVProfile, Email, User
+from app.models import Ad, AdRecommendation, CVProfile, Email, User
 
 log = logging.getLogger(__name__)
 
@@ -178,6 +178,7 @@ def reset_recommendations(db: Session, user: User) -> None:
         .where(Email.user_id == user.id)
         .values(recommendation=None, recommendation_score=None, recommendation_reason=None)
     )
+    db.execute(delete(AdRecommendation).where(AdRecommendation.user_id == user.id))
     db.commit()
 
 
@@ -217,3 +218,63 @@ def recommend_pending(db: Session, user: User) -> int:
         return len(emails)
     finally:
         lock.release()
+
+
+def _ad_item(ad: Ad) -> ai.RecommendItem:
+    parts = [f"Posted by: {ad.organisation.name}", ad.description[:500]]
+    if ad.faculty:
+        parts.append(f"For: {ad.faculty}")
+    return ai.RecommendItem(
+        id=f"ad:{ad.id}",
+        kind="ad",
+        title=ad.title,
+        text="\n".join(parts),
+        segment=ad.category if ad.category in SEGMENTS else None,
+        target_fields=ad.target_fields or [],
+    )
+
+
+def recommend_ads(db: Session, user: User, ad_ids: list[int]) -> int:
+    """Score board posts this student has no score for yet. Returns how many were scored."""
+    profile = _profile_for(db, user)
+    if profile is None or not ad_ids:
+        return 0
+    if not _configured:
+        configure()
+    lock = _lock_for(-(10**9) - user.id)
+    if not lock.acquire(blocking=False):
+        return 0
+    try:
+        scored = set(
+            db.scalars(
+                select(AdRecommendation.ad_id).where(
+                    AdRecommendation.user_id == user.id, AdRecommendation.ad_id.in_(ad_ids)
+                )
+            )
+        )
+        ads = db.scalars(select(Ad).where(Ad.id.in_([i for i in ad_ids if i not in scored]))).all()
+        if not ads:
+            return 0
+        try:
+            recs = ai.recommend(profile, [_ad_item(a) for a in ads])
+        except ai.BudgetExceeded:
+            return 0
+        for ad, rec in zip(ads, recs, strict=True):
+            db.add(
+                AdRecommendation(
+                    user_id=user.id,
+                    ad_id=ad.id,
+                    label=rec.label,
+                    score=rec.score,
+                    reason=rec.reason,
+                )
+            )
+        db.commit()
+        return len(ads)
+    finally:
+        lock.release()
+
+
+def forget_ad_scores(db: Session, ad_id: int) -> None:
+    """A post was edited: everyone's score for it must be recomputed."""
+    db.execute(delete(AdRecommendation).where(AdRecommendation.ad_id == ad_id))

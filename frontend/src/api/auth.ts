@@ -14,12 +14,13 @@ const MOCK_USER: User = {
 export type Provider = 'microsoft' | 'google'
 
 /** Full-page redirect to Microsoft or Google sign-in. Also used to add a second mailbox. */
-export function signIn(provider: Provider) {
+export function signIn(provider: Provider, next?: string) {
   if (USE_MOCKS) {
     window.location.href = '/inbox'
     return
   }
-  window.location.href = `${API_BASE}/auth/${provider}/login`
+  const qs = next ? `?next=${encodeURIComponent(next)}` : ''
+  window.location.href = `${API_BASE}/auth/${provider}/login${qs}`
 }
 
 export function getProviders(): Promise<Providers> {

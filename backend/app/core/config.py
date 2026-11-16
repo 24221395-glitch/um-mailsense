@@ -34,6 +34,10 @@ class Settings(BaseSettings):
 
     # Comma-separated list, e.g. "siswa.um.edu.my,siswa365.um.edu.my". Empty = allow any account.
     allowed_email_domains: str = ""
+    # True = every new board post waits for an admin before it is visible.
+    # False = verified organisations publish straight away; admins can still hide/remove.
+    ads_require_approval: bool = False
+
     # Comma-separated emails that get the admin role when they sign in.
     admin_emails: str = ""
 

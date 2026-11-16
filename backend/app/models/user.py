@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database import Base
+from app.core.database import Base, UTCDateTime
 from app.core.security import EncryptedText
 
 
@@ -19,8 +19,8 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(200), default="")
     # student | organisation | admin
     role: Mapped[str] = mapped_column(String(20), default="student")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    last_synced_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
     accounts: Mapped[list["OAuthAccount"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
@@ -43,9 +43,9 @@ class OAuthAccount(Base):
     email: Mapped[str] = mapped_column(String(320))
     access_token: Mapped[str] = mapped_column(EncryptedText)
     refresh_token: Mapped[str | None] = mapped_column(EncryptedText)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime)
     # Set when the provider rejects our refresh token (user revoked access) → ask to sign in again.
     needs_reconnect: Mapped[bool] = mapped_column(default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     user: Mapped[User] = relationship(back_populates="accounts")

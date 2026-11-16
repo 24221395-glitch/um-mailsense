@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Float, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.database import Base
+from app.core.database import Base, UTCDateTime
 from app.core.security import EncryptedText
 from app.models.user import utcnow
 
@@ -22,7 +22,7 @@ class Email(Base):
     subject: Mapped[str] = mapped_column(String(1000), default="")
     snippet: Mapped[str] = mapped_column(Text, default="")
     body_text: Mapped[str] = mapped_column(EncryptedText, default="")  # encrypted at rest (NFR-03)
-    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    received_at: Mapped[datetime] = mapped_column(UTCDateTime, index=True)
     is_read: Mapped[bool] = mapped_column(default=False)
     web_link: Mapped[str | None] = mapped_column(String(2000))
 
@@ -32,9 +32,9 @@ class Email(Base):
     segment_is_manual: Mapped[bool] = mapped_column(default=False)
     segment_reason: Mapped[str | None] = mapped_column(String(300))
     ai_attempts: Mapped[int] = mapped_column(default=0, server_default="0")
-    classified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
-    event_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    classified_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    deadline: Mapped[datetime | None] = mapped_column(UTCDateTime, index=True)
+    event_date: Mapped[datetime | None] = mapped_column(UTCDateTime)
     venue: Mapped[str | None] = mapped_column(String(500))
     organiser: Mapped[str | None] = mapped_column(String(300))
     registration_link: Mapped[str | None] = mapped_column(String(2000))
@@ -44,4 +44,4 @@ class Email(Base):
     recommendation_score: Mapped[float | None] = mapped_column(Float)
     recommendation_reason: Mapped[str | None] = mapped_column(String(500))
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
