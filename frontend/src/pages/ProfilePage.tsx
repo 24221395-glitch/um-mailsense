@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import NavBar from '../components/NavBar'
 import { deleteProfile, getProfile, saveProfile, uploadCv } from '../api/profile'
 import type { Profile, ProfileInput } from '../types/api'
 
@@ -28,19 +27,19 @@ function TagEditor({
 
   return (
     <div>
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-ink-2">{label}</span>
       <div className="mt-2 flex flex-wrap gap-2">
         {values.map((v) => (
           <span
             key={v}
-            className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700"
+            className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-3 py-1 text-sm text-accent"
           >
             {v}
             <button
               type="button"
               aria-label={`Remove ${v}`}
               onClick={() => onChange(values.filter((x) => x !== v))}
-              className="text-blue-400 hover:text-blue-700"
+              className="text-accent/70 hover:text-accent-2"
             >
               ×
             </button>
@@ -59,12 +58,12 @@ function TagEditor({
           }}
           placeholder={placeholder}
           aria-label={`Add ${label.toLowerCase()}`}
-          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm"
         />
         <button
           type="button"
           onClick={add}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600"
+          className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-muted"
         >
           Add
         </button>
@@ -145,22 +144,21 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    return <p className="p-10 text-center text-sm text-slate-400">Loading your profile…</p>
+    return <p className="p-10 text-center text-sm text-faint">Loading your profile…</p>
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <h1 className="mb-4 text-2xl font-bold text-slate-900">Your profile</h1>
+    <div className="mx-auto w-full max-w-3xl">
+      <h1 className="mb-4 text-2xl font-bold text-ink">Your profile</h1>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="font-semibold text-slate-900">Upload your CV</h2>
-        <p className="mt-1 text-sm text-slate-500">
+      <section className="rounded-2xl border border-line bg-surface p-4">
+        <h2 className="font-semibold text-ink">Upload your CV</h2>
+        <p className="mt-1 text-sm text-muted">
           PDF or Word, up to 5 MB. We read your field, skills and interests to recommend
           opportunities. The file itself is not kept.
         </p>
         {profile?.cv_filename && (
-          <p className="mt-2 text-xs text-slate-400">Last read: {profile.cv_filename}</p>
+          <p className="mt-2 text-xs text-faint">Last read: {profile.cv_filename}</p>
         )}
         <input
           ref={fileInput}
@@ -173,7 +171,7 @@ export default function ProfilePage() {
           type="button"
           disabled={busy !== null}
           onClick={() => fileInput.current?.click()}
-          className="mt-3 w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white disabled:opacity-50"
+          className="mt-3 w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent disabled:opacity-50"
         >
           {busy === 'upload' ? 'Reading your CV…' : profile ? 'Upload a new CV' : 'Choose CV file'}
         </button>
@@ -183,39 +181,39 @@ export default function ProfilePage() {
         <p
           role={message.kind === 'error' ? 'alert' : 'status'}
           className={`mt-4 rounded-xl p-3 text-sm ${
-            message.kind === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+            message.kind === 'error' ? 'bg-danger-soft text-danger' : 'bg-success-soft text-success'
           }`}
         >
           {message.text}
         </p>
       )}
 
-      <section className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
+      <section className="mt-4 space-y-4 rounded-2xl border border-line bg-surface p-4">
         <div>
-          <h2 className="font-semibold text-slate-900">
+          <h2 className="font-semibold text-ink">
             {profile ? 'Check and edit' : 'No CV? Fill it in yourself'}
           </h2>
-          {profile?.summary && <p className="mt-1 text-sm text-slate-500">{profile.summary}</p>}
+          {profile?.summary && <p className="mt-1 text-sm text-muted">{profile.summary}</p>}
         </div>
 
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Field of study</span>
+          <span className="text-sm font-medium text-ink-2">Field of study</span>
           <input
             value={form.field_of_study ?? ''}
             onChange={(e) => setForm({ ...form, field_of_study: e.target.value })}
             placeholder="e.g. Computer Science"
-            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-line px-3 py-2 text-sm"
           />
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Year of study</span>
+          <span className="text-sm font-medium text-ink-2">Year of study</span>
           <select
             value={form.year_of_study ?? ''}
             onChange={(e) =>
               setForm({ ...form, year_of_study: e.target.value ? Number(e.target.value) : null })
             }
-            className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm"
           >
             <option value="">Not set</option>
             {[1, 2, 3, 4, 5].map((y) => (
@@ -243,16 +241,16 @@ export default function ProfilePage() {
           type="button"
           disabled={busy !== null}
           onClick={handleSave}
-          className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent disabled:opacity-50"
         >
           {busy === 'save' ? 'Saving…' : 'Save profile'}
         </button>
         {profile && (
-          <button type="button" onClick={handleDelete} className="w-full text-sm text-red-600">
+          <button type="button" onClick={handleDelete} className="w-full text-sm text-danger">
             Delete profile
           </button>
         )}
       </section>
-    </main>
+    </div>
   )
 }

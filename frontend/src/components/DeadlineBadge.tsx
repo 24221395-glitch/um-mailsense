@@ -17,23 +17,25 @@ export default function DeadlineBadge({ deadline, now }: DeadlineBadgeProps) {
 
   if (days < 0) {
     label = `Expired ${date}`
-    style = 'bg-slate-100 text-slate-500'
+    style = 'bg-surface-2 text-muted'
   } else if (days === 0) {
     label = 'Due today'
-    style = 'bg-red-100 text-red-700'
+    style = 'bg-danger-soft text-danger'
   } else if (days <= 3) {
     label = `Due ${date}`
-    style = 'bg-red-100 text-red-700'
+    style = 'bg-danger-soft text-danger'
   } else if (days <= 7) {
     label = `Due ${date}`
-    style = 'bg-amber-100 text-amber-700'
+    style = 'bg-warn-soft text-warn'
   } else {
     label = `Due ${date}`
-    style = 'bg-slate-100 text-slate-600'
+    style = 'bg-surface-2 text-muted'
   }
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${style}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${style}`}
+    >
       {label}
     </span>
   )

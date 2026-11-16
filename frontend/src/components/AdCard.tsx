@@ -43,27 +43,29 @@ export default function AdCard({
     : null
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <article className="overflow-hidden rounded-2xl border border-line bg-surface shadow-none">
       <button type="button" onClick={() => onClick?.(id)} className="block w-full text-left">
-        <div className="flex h-32 items-center justify-center bg-blue-50">
+        <div className="flex h-32 items-center justify-center bg-[radial-gradient(circle_at_30%_20%,var(--accent-soft),transparent_70%),linear-gradient(135deg,var(--surface-3),var(--surface))]">
           {imageUrl ? (
             <img src={imageUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="text-2xl font-semibold text-blue-600">{initials(organisationName)}</span>
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-line-strong bg-surface text-2xl font-semibold text-accent">
+              {initials(organisationName)}
+            </span>
           )}
         </div>
         <div className="p-4">
-          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <h3 className="text-base font-semibold text-ink">{title}</h3>
+          <p className="mt-1 text-sm text-muted">
             {organisationName}
             {dateText && ` · ${dateText}`}
           </p>
           <div className="mt-3 flex items-center gap-2">
-            <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent">
               {category}
             </span>
             {recommendation === 'for_you' && (
-              <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+              <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
                 For you
               </span>
             )}
@@ -76,7 +78,7 @@ export default function AdCard({
           onClick={() => onToggleSave?.(id)}
           aria-pressed={isSaved}
           aria-label={isSaved ? 'Unsave' : 'Save'}
-          className={`text-xl leading-none ${isSaved ? 'text-red-500' : 'text-slate-300 hover:text-red-400'}`}
+          className={`text-xl leading-none ${isSaved ? 'text-danger' : 'text-faint hover:text-danger'}`}
         >
           {isSaved ? '♥' : '♡'}
         </button>

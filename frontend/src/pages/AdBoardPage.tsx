@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { getAd, listAds, reportAd, saveAd, unsaveAd } from '../api/ads'
 import { ApiError } from '../api/client'
 import AdCard from '../components/AdCard'
-import NavBar from '../components/NavBar'
 import SegmentTabs from '../components/SegmentTabs'
 import { AD_CATEGORIES, FACULTIES } from '../faculties'
 import { segmentLabel } from '../segments'
@@ -51,19 +50,19 @@ function AdDetail({
       role="dialog"
       aria-modal="true"
       aria-label={ad.title}
-      className="fixed inset-0 z-10 flex items-end justify-center bg-slate-900/40 sm:items-center"
+      className="fixed inset-0 z-10 flex items-end justify-center bg-black/60 sm:items-center"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-surface p-5 sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">{ad.title}</h2>
-            <p className="text-sm text-slate-500">{ad.organisation_name}</p>
+            <h2 className="text-lg font-semibold text-ink">{ad.title}</h2>
+            <p className="text-sm text-muted">{ad.organisation_name}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-slate-400">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-faint">
             ✕
           </button>
         </div>
@@ -71,39 +70,39 @@ function AdDetail({
           <img src={ad.image_url} alt="" className="mt-3 max-h-56 w-full rounded-xl object-cover" />
         )}
         {ad.recommendation === 'for_you' && ad.recommendation_reason && (
-          <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+          <p className="mt-3 rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
             For you: {ad.recommendation_reason}
           </p>
         )}
         <dl className="mt-3 space-y-1 text-sm">
           <div>
-            <dt className="inline font-medium text-slate-700">Category: </dt>
-            <dd className="inline text-slate-600">{segmentLabel(ad.category)}</dd>
+            <dt className="inline font-medium text-ink-2">Category: </dt>
+            <dd className="inline text-muted">{segmentLabel(ad.category)}</dd>
           </div>
           {ad.event_date && (
             <div>
-              <dt className="inline font-medium text-slate-700">When: </dt>
-              <dd className="inline text-slate-600">{formatDate(ad.event_date)}</dd>
+              <dt className="inline font-medium text-ink-2">When: </dt>
+              <dd className="inline text-muted">{formatDate(ad.event_date)}</dd>
             </div>
           )}
           {ad.deadline && (
             <div>
-              <dt className="inline font-medium text-slate-700">Register by: </dt>
-              <dd className="inline text-red-600">{formatDate(ad.deadline)}</dd>
+              <dt className="inline font-medium text-ink-2">Register by: </dt>
+              <dd className="inline text-danger">{formatDate(ad.deadline)}</dd>
             </div>
           )}
           {ad.venue && (
             <div>
-              <dt className="inline font-medium text-slate-700">Where: </dt>
-              <dd className="inline text-slate-600">{ad.venue}</dd>
+              <dt className="inline font-medium text-ink-2">Where: </dt>
+              <dd className="inline text-muted">{ad.venue}</dd>
             </div>
           )}
           <div>
-            <dt className="inline font-medium text-slate-700">For: </dt>
-            <dd className="inline text-slate-600">{ad.faculty ?? 'All faculties'}</dd>
+            <dt className="inline font-medium text-ink-2">For: </dt>
+            <dd className="inline text-muted">{ad.faculty ?? 'All faculties'}</dd>
           </div>
         </dl>
-        <p className="mt-3 whitespace-pre-line text-sm text-slate-700">{ad.description}</p>
+        <p className="mt-3 whitespace-pre-line text-sm text-ink-2">{ad.description}</p>
 
         <div className="mt-4 flex gap-2">
           {ad.link && (
@@ -111,7 +110,7 @@ function AdDetail({
               href={ad.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white"
+              className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-center text-sm font-semibold text-on-accent"
             >
               Register / more info
             </a>
@@ -119,13 +118,13 @@ function AdDetail({
           <button
             type="button"
             onClick={() => onToggleSave(ad)}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-700"
+            className="rounded-xl border border-line px-4 py-2.5 text-sm text-ink-2"
           >
             {ad.is_saved ? '♥ Saved' : '♡ Save'}
           </button>
         </div>
 
-        {note && <p className="mt-3 text-sm text-slate-500">{note}</p>}
+        {note && <p className="mt-3 text-sm text-muted">{note}</p>}
         {reporting ? (
           <div className="mt-3 space-y-2">
             <textarea
@@ -133,13 +132,13 @@ function AdDetail({
               onChange={(e) => setReason(e.target.value)}
               placeholder="What is wrong with this post?"
               aria-label="Report reason"
-              className="w-full rounded-xl border border-slate-200 p-2 text-sm"
+              className="w-full rounded-xl border border-line p-2 text-sm"
             />
             <button
               type="button"
               disabled={reason.trim().length < 3}
               onClick={submitReport}
-              className="rounded-xl bg-red-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              className="rounded-xl bg-danger px-3 py-1.5 text-sm text-on-accent disabled:opacity-50"
             >
               Send report
             </button>
@@ -149,7 +148,7 @@ function AdDetail({
             <button
               type="button"
               onClick={() => setReporting(true)}
-              className="mt-3 text-xs text-slate-400 underline"
+              className="mt-3 text-xs text-faint underline"
             >
               Report this post
             </button>
@@ -231,10 +230,9 @@ export default function AdBoardPage() {
   ]
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <h1 className="text-2xl font-bold text-slate-900">Community board</h1>
-      <p className="mb-4 text-sm text-slate-500">Programmes from verified UM clubs and offices.</p>
+    <div className="mx-auto w-full max-w-6xl">
+      <h1 className="text-2xl font-bold text-ink">Community board</h1>
+      <p className="mb-4 text-sm text-muted">Programmes from verified UM clubs and offices.</p>
 
       <div className="mb-3 flex gap-2">
         <input
@@ -242,13 +240,13 @@ export default function AdBoardPage() {
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search posts"
           aria-label="Search posts"
-          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm"
         />
         <select
           value={faculty}
           onChange={(e) => setFaculty(e.target.value)}
           aria-label="Faculty"
-          className="w-36 rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm"
+          className="w-36 rounded-xl border border-line bg-surface px-2 py-2 text-sm"
         >
           <option value="">All faculties</option>
           {FACULTIES.map((f) => (
@@ -263,9 +261,9 @@ export default function AdBoardPage() {
       </div>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-slate-400">Loading posts…</p>
+        <p className="py-10 text-center text-sm text-faint">Loading posts…</p>
       ) : ads.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-400">
+        <p className="py-10 text-center text-sm text-faint">
           {tab === SAVED
             ? 'You have not saved any posts yet.'
             : tab === FOR_YOU
@@ -273,7 +271,7 @@ export default function AdBoardPage() {
               : 'No posts match.'}
         </p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {ads.map((ad) => (
             <li key={ad.id}>
               <AdCard
@@ -294,6 +292,6 @@ export default function AdBoardPage() {
       )}
 
       {open && <AdDetail ad={open} onClose={() => setOpen(null)} onToggleSave={toggleSave} />}
-    </main>
+    </div>
   )
 }

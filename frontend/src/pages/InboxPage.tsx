@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { getMe, signIn, signOut } from '../api/auth'
+import { getMe, signIn } from '../api/auth'
 import { ApiError } from '../api/client'
 import { getSegmentCounts, listEmails, syncNow } from '../api/emails'
 import { getProfile } from '../api/profile'
 import EmailCard from '../components/EmailCard'
-import NavBar from '../components/NavBar'
 import SegmentTabs from '../components/SegmentTabs'
+import { RefreshIcon, SEGMENT_ICONS, SparkleIcon } from '../components/icons'
 import { SEGMENT_ORDER, UNSORTED, segmentLabel } from '../segments'
 import type { Email, SegmentCount, User } from '../types/api'
 
@@ -19,8 +19,13 @@ function formatDay(iso: string): string {
 export default function InboxPage() {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
-  const [params] = useSearchParams()
-  const [activeCode, setActiveCode] = useState(() => params.get('segment') || 'ALL')
+  // the selected segment lives in the URL so the sidebar's "For You" link works too
+  const [params, setParams] = useSearchParams()
+  const activeCode = params.get('segment') || 'ALL'
+  const setActiveCode = useCallback(
+    (code: string) => setParams(code === 'ALL' ? {} : { segment: code }),
+    [setParams],
+  )
   const [emails, setEmails] = useState<Email[]>([])
   const [counts, setCounts] = useState<SegmentCount[]>([])
   const [loading, setLoading] = useState(true)
@@ -79,20 +84,24 @@ export default function InboxPage() {
     return () => window.clearTimeout(timer)
   }, [waitingForFirstSync, waitingForAi, polls, load])
 
+  const byCode = useMemo(() => new Map(counts.map((c) => [c.code ?? UNSORTED, c])), [counts])
+  const tiles = SEGMENT_ORDER.filter((c) => c !== 'NOT_FOR_ME')
+
   const tabs = useMemo(() => {
-    const byCode = new Map(counts.map((c) => [c.code ?? UNSORTED, c]))
     const total = counts.reduce((sum, c) => sum + c.total, 0)
-    const ordered = [...SEGMENT_ORDER, UNSORTED].filter((code) => byCode.has(code))
     return [
       { code: 'ALL', label: 'All', count: total },
       { code: FOR_YOU, label: '★ For you' },
-      ...ordered.map((code) => ({
-        code,
-        label: code === UNSORTED ? 'Sorting…' : segmentLabel(code),
-        count: byCode.get(code)!.total,
-      })),
+      {
+        code: 'NOT_FOR_ME',
+        label: segmentLabel('NOT_FOR_ME'),
+        count: byCode.get('NOT_FOR_ME')?.total ?? 0,
+      },
+      ...(byCode.has(UNSORTED)
+        ? [{ code: UNSORTED, label: 'Sorting…', count: byCode.get(UNSORTED)!.total }]
+        : []),
     ]
-  }, [counts])
+  }, [counts, byCode])
 
   const unreadCount = counts.reduce((sum, c) => sum + c.unread, 0)
   const reconnect = user?.accounts.find((a) => a.needs_reconnect)
@@ -112,41 +121,31 @@ export default function InboxPage() {
     }
   }
 
-  async function handleSignOut() {
-    await signOut().catch(() => {})
-    navigate('/', { replace: true })
-  }
-
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <header className="mb-4 flex items-start justify-between gap-3">
+    <div className="mx-auto w-full max-w-3xl">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-slate-900">Inbox</h1>
-          <p className="text-sm text-slate-500">{unreadCount} new emails</p>
-          {user && <p className="truncate text-xs text-slate-400">{user.email}</p>}
+          <p className="eyebrow">Inbox</p>
+          <h1 className="mt-2 flex items-center gap-2 text-2xl font-semibold text-ink sm:text-3xl">
+            Your Inbox, Organised by AI <SparkleIcon className="h-5 w-5 text-accent" />
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            {unreadCount} new emails{user && <span className="text-faint"> · {user.email}</span>}
+          </p>
         </div>
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={handleSync}
-            disabled={syncing}
-            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 disabled:opacity-50"
-          >
-            {syncing ? 'Syncing…' : 'Refresh'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="rounded-full px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100"
-          >
-            Sign out
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={syncing}
+          className="btn-ghost py-2 text-sm"
+        >
+          <RefreshIcon className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing…' : 'Refresh'}
+        </button>
       </header>
 
       {reconnect && (
-        <div role="alert" className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+        <div role="alert" className="mb-4 rounded-xl bg-warn-soft p-3 text-sm text-warn">
           We lost access to {reconnect.email}.{' '}
           <button
             type="button"
@@ -159,11 +158,11 @@ export default function InboxPage() {
       )}
 
       {user && (!hasGoogle || !hasMicrosoft) && (
-        <p className="mb-4 text-xs text-slate-500">
+        <p className="mb-4 text-xs text-muted">
           Also use {hasMicrosoft ? 'Gmail' : 'Siswamail'}?{' '}
           <button
             type="button"
-            className="font-medium text-blue-600"
+            className="font-medium text-accent"
             onClick={() => signIn(hasMicrosoft ? 'google' : 'microsoft')}
           >
             Connect it
@@ -172,19 +171,49 @@ export default function InboxPage() {
       )}
 
       {hasProfile === false && (
-        <Link to="/profile" className="mb-4 block rounded-xl bg-blue-50 p-3 text-sm text-blue-800">
+        <Link
+          to="/profile"
+          className="mb-4 block rounded-xl bg-accent-soft p-3 text-sm text-accent"
+        >
           <span className="font-semibold">Upload your CV</span> to see which emails are for you →
         </Link>
       )}
+
+      <div className="mb-5 grid grid-cols-3 gap-3">
+        {tiles.map((code) => {
+          const Ico = SEGMENT_ICONS[code]
+          const c = byCode.get(code)
+          const active = activeCode === code
+          return (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setActiveCode(active ? 'ALL' : code)}
+              aria-pressed={active}
+              className={`rounded-2xl border px-2 py-4 text-center transition ${
+                active
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-line bg-surface hover:border-line-strong'
+              }`}
+            >
+              <Ico className="mx-auto h-8 w-8 text-accent" />
+              <p className="mt-2 text-sm font-medium leading-tight text-ink">
+                {segmentLabel(code)}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">{c?.unread ?? 0} new</p>
+            </button>
+          )
+        })}
+      </div>
 
       <div className="mb-4">
         <SegmentTabs tabs={tabs} activeCode={activeCode} onChange={setActiveCode} />
       </div>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-slate-400">Loading your inbox…</p>
+        <p className="py-10 text-center text-sm text-faint">Loading your inbox…</p>
       ) : emails.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-400">
+        <p className="py-10 text-center text-sm text-faint">
           {waitingForFirstSync
             ? 'Fetching your emails… this can take a moment.'
             : activeCode === FOR_YOU
@@ -215,6 +244,6 @@ export default function InboxPage() {
           ))}
         </ul>
       )}
-    </main>
+    </div>
   )
 }

@@ -36,29 +36,29 @@ export default function EmailCard({
     <button
       type="button"
       onClick={() => onClick?.(id)}
-      className={`w-full rounded-2xl border bg-white p-4 text-left shadow-sm hover:shadow-md ${
-        isOfficial ? 'border-amber-300 border-l-4 border-l-amber-400' : 'border-slate-200'
+      className={`w-full rounded-2xl border bg-surface p-4 text-left shadow-none hover:border-line-strong ${
+        isOfficial ? 'border-line-strong border-l-4 border-l-accent' : 'border-line'
       }`}
     >
       <div className="flex items-start gap-3">
         {!isRead && (
-          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-600" aria-label="Unread" />
+          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" aria-label="Unread" />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span
-              className={`truncate text-sm ${isRead ? 'font-medium' : 'font-semibold'} text-slate-900`}
+              className={`truncate text-sm ${isRead ? 'font-medium' : 'font-semibold'} text-ink`}
             >
               {senderName}
             </span>
-            <time className="shrink-0 text-xs text-slate-500">{time}</time>
+            <time className="shrink-0 text-xs text-muted">{time}</time>
           </div>
-          <p className="mt-1 truncate text-sm font-semibold text-slate-900">{subject}</p>
-          <p className="mt-1 line-clamp-2 text-xs text-slate-500">{snippet}</p>
+          <p className="mt-1 truncate text-sm font-semibold text-ink">{subject}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-muted">{snippet}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                isOfficial ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'
+                isOfficial ? 'bg-warn-soft text-warn' : 'bg-accent-soft text-accent'
               }`}
             >
               {segmentLabel}
@@ -66,19 +66,19 @@ export default function EmailCard({
             {recommendation === 'for_you' && (
               <span
                 title={recommendationReason}
-                className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700"
+                className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success"
               >
                 For you
               </span>
             )}
             {deadlineLabel && (
-              <span className="ml-auto rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+              <span className="ml-auto rounded-full bg-warn-soft px-2.5 py-0.5 text-xs font-medium text-warn">
                 {deadlineLabel}
               </span>
             )}
           </div>
           {recommendation === 'for_you' && recommendationReason && (
-            <p className="mt-2 text-xs text-green-700">{recommendationReason}</p>
+            <p className="mt-2 text-xs text-success">{recommendationReason}</p>
           )}
         </div>
       </div>

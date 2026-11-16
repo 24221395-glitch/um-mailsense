@@ -59,31 +59,31 @@ export default function DeadlineCalendar({ items, month, onMonthChange, now }: P
 
   return (
     <div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-3">
+      <div className="rounded-2xl border border-line bg-surface p-3">
         <div className="mb-2 flex items-center justify-between">
           <button
             type="button"
             onClick={() => shift(-1)}
             aria-label="Previous month"
-            className="rounded-full px-3 py-1 text-slate-500 hover:bg-slate-100"
+            className="rounded-full px-3 py-1 text-muted hover:bg-surface-2"
           >
             ‹
           </button>
-          <h2 className="font-semibold text-slate-900">
+          <h2 className="font-semibold text-ink">
             {month.toLocaleDateString([], { month: 'long', year: 'numeric' })}
           </h2>
           <button
             type="button"
             onClick={() => shift(1)}
             aria-label="Next month"
-            className="rounded-full px-3 py-1 text-slate-500 hover:bg-slate-100"
+            className="rounded-full px-3 py-1 text-muted hover:bg-surface-2"
           >
             ›
           </button>
         </div>
         <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {WEEKDAYS.map((d) => (
-            <div key={d} className="py-1 font-medium text-slate-400">
+            <div key={d} className="py-1 font-medium text-faint">
               {d}
             </div>
           ))}
@@ -102,17 +102,17 @@ export default function DeadlineCalendar({ items, month, onMonthChange, now }: P
                 aria-pressed={isSelected}
                 className={`flex h-10 flex-col items-center justify-center rounded-lg text-sm ${
                   isSelected
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-accent text-on-accent'
                     : key === todayKey
-                      ? 'bg-blue-50 font-semibold text-blue-700'
-                      : 'text-slate-700 hover:bg-slate-50'
+                      ? 'bg-accent-soft font-semibold text-accent'
+                      : 'text-ink-2 hover:bg-surface-2'
                 }`}
               >
                 {date.getDate()}
                 {dayItems.length > 0 && (
                   <span
                     className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
-                      isSelected ? 'bg-white' : hasDeadline ? 'bg-red-500' : 'bg-blue-500'
+                      isSelected ? 'bg-surface' : hasDeadline ? 'bg-danger' : 'bg-accent'
                     }`}
                   />
                 )}
@@ -120,39 +120,37 @@ export default function DeadlineCalendar({ items, month, onMonthChange, now }: P
             )
           })}
         </div>
-        <p className="mt-2 flex gap-4 text-xs text-slate-400">
+        <p className="mt-2 flex gap-4 text-xs text-faint">
           <span>
-            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-red-500" />
+            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-danger" />
             Deadline
           </span>
           <span>
-            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-blue-500" />
+            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-accent" />
             Event
           </span>
         </p>
       </div>
 
-      <h3 className="mb-2 mt-4 text-sm font-semibold text-slate-700">
+      <h3 className="mb-2 mt-4 text-sm font-semibold text-ink-2">
         {selected ? 'On this day' : 'Coming up'}
       </h3>
       {shown.length === 0 ? (
-        <p className="text-sm text-slate-400">Nothing here.</p>
+        <p className="text-sm text-faint">Nothing here.</p>
       ) : (
         <ul className="space-y-2">
           {shown.map((item) => (
             <li key={`${item.kind}-${item.id}-${item.date_type}`}>
               <Link
                 to={itemLink(item)}
-                className="block rounded-xl border border-slate-200 bg-white p-3 hover:shadow-sm"
+                className="block rounded-xl border border-line bg-surface p-3 hover:border-line-strong"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 truncate text-sm font-medium text-slate-900">
-                    {item.title}
-                  </p>
+                  <p className="min-w-0 truncate text-sm font-medium text-ink">{item.title}</p>
                   {item.date_type === 'deadline' ? (
                     <DeadlineBadge deadline={item.date} now={now} />
                   ) : (
-                    <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs text-blue-700">
+                    <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-0.5 text-xs text-accent">
                       {new Date(item.date).toLocaleDateString([], {
                         day: 'numeric',
                         month: 'short',
@@ -160,7 +158,7 @@ export default function DeadlineCalendar({ items, month, onMonthChange, now }: P
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-muted">
                   {item.date_type === 'deadline' ? 'Deadline' : 'Event'} · {item.source}
                   {item.segment && ` · ${segmentLabel(item.segment)}`}
                   {item.kind === 'ad' && ' · saved post'}

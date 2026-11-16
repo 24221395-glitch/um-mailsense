@@ -24,13 +24,13 @@ export default function SegmentTabs({ tabs, activeCode, onChange }: SegmentTabsP
             onClick={() => onChange(tab.code)}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               active
-                ? 'bg-blue-600 text-white'
-                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                ? 'bg-accent text-on-accent'
+                : 'border border-line bg-surface text-muted hover:bg-surface-2'
             }`}
           >
             {tab.label}
             {tab.count !== undefined && (
-              <span className={`ml-1.5 text-xs ${active ? 'text-blue-100' : 'text-slate-400'}`}>
+              <span className={`ml-1.5 text-xs ${active ? 'text-on-accent/70' : 'text-faint'}`}>
                 {tab.count}
               </span>
             )}
