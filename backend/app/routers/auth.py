@@ -65,12 +65,19 @@ def providers():
     return ProvidersOut(microsoft=s.ms_configured, google=s.google_configured)
 
 
+def _safe_next(path: str | None) -> str:
+    """Only allow redirects to our own frontend pages (no open redirect)."""
+    allowed = ("/inbox", "/organisation", "/profile", "/board")
+    return path if path in allowed else "/inbox"
+
+
 @router.get("/{provider}/login")
-def login(provider: str, login_hint: str | None = None):
+def login(provider: str, login_hint: str | None = None, next: str | None = None):
     module = _module(provider)
     url, flow = module.start_flow(login_hint)
     response = RedirectResponse(url, status.HTTP_302_FOUND)
-    set_cookie(response, _FLOW_COOKIE.format(provider), encrypt_json(flow), max_age=600)
+    state = encrypt_json({"flow": flow, "next": _safe_next(next)})
+    set_cookie(response, _FLOW_COOKIE.format(provider), state, max_age=600)
     return response
 
 
@@ -128,7 +135,8 @@ def callback(
         return _to_frontend("/", error="session_expired")
 
     try:
-        result = module.finish_flow(decrypt_json(raw_flow), dict(request.query_params))
+        saved = decrypt_json(raw_flow)
+        result = module.finish_flow(saved["flow"], dict(request.query_params))
     except _AUTH_ERRORS as exc:
         log.info("%s sign-in failed: %s %s", provider, exc.code, exc.detail)
         response = _to_frontend("/", error=exc.code, provider=provider)
@@ -143,7 +151,7 @@ def callback(
     user = _save_account(db, provider, result, current_user_id)
 
     background.add_task(sync_user_by_id, user.id)  # first inbox pull right away
-    response = _to_frontend("/inbox")
+    response = _to_frontend(_safe_next(saved.get("next")))
     response.delete_cookie(cookie_name, path="/")
     set_session_cookie(response, user.id)
     return response

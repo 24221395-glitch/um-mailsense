@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import NavBar from '../components/NavBar'
 import { deleteProfile, getProfile, saveProfile, uploadCv } from '../api/profile'
 import type { Profile, ProfileInput } from '../types/api'
 
@@ -149,12 +150,8 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Your profile</h1>
-        <Link to="/inbox" className="text-sm text-blue-600">
-          ← Inbox
-        </Link>
-      </header>
+      <NavBar />
+      <h1 className="mb-4 text-2xl font-bold text-slate-900">Your profile</h1>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4">
         <h2 className="font-semibold text-slate-900">Upload your CV</h2>

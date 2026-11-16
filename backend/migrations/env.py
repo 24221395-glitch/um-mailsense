@@ -4,7 +4,7 @@ from alembic import context
 
 import app.models  # noqa: F401  (registers every table)
 from app.core.config import get_settings
-from app.core.database import Base, make_engine
+from app.core.database import Base, UTCDateTime, make_engine
 from app.core.security import EncryptedText
 
 config = context.config
@@ -19,6 +19,8 @@ def render_item(type_, obj, autogen_context):
     # Encrypted columns are plain TEXT in the database.
     if type_ == "type" and isinstance(obj, EncryptedText):
         return "sa.Text()"
+    if type_ == "type" and isinstance(obj, UTCDateTime):
+        return "sa.DateTime(timezone=True)"
     return False
 
 

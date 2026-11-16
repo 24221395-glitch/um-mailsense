@@ -5,6 +5,7 @@ import { ApiError } from '../api/client'
 import { getSegmentCounts, listEmails, syncNow } from '../api/emails'
 import { getProfile } from '../api/profile'
 import EmailCard from '../components/EmailCard'
+import NavBar from '../components/NavBar'
 import SegmentTabs from '../components/SegmentTabs'
 import { SEGMENT_ORDER, UNSORTED, segmentLabel } from '../segments'
 import type { Email, SegmentCount, User } from '../types/api'
@@ -117,6 +118,7 @@ export default function InboxPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
+      <NavBar />
       <header className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold text-slate-900">Inbox</h1>
@@ -124,12 +126,6 @@ export default function InboxPage() {
           {user && <p className="truncate text-xs text-slate-400">{user.email}</p>}
         </div>
         <div className="flex shrink-0 gap-2">
-          <Link
-            to="/profile"
-            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600"
-          >
-            Profile
-          </Link>
           <button
             type="button"
             onClick={handleSync}

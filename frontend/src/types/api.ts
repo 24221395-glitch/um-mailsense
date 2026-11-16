@@ -73,3 +73,88 @@ export type Providers = {
   microsoft: boolean
   google: boolean
 }
+
+export type Organisation = {
+  id: number
+  name: string
+  description: string
+  contact_email: string
+  website: string | null
+  faculty: string | null
+  status: 'pending' | 'approved' | 'rejected'
+  review_note: string | null
+  applied_at: string
+}
+
+export type OrganisationInput = {
+  name: string
+  description: string
+  contact_email: string
+  website: string | null
+  faculty: string | null
+}
+
+export type Ad = {
+  id: number
+  title: string
+  description: string
+  category: string
+  event_date: string | null
+  deadline: string | null
+  venue: string | null
+  link: string | null
+  image_url: string | null
+  faculty: string | null
+  target_fields: string[]
+  organisation_id: number
+  organisation_name: string
+  created_at: string
+  is_saved: boolean
+  recommendation: Recommendation
+  recommendation_reason: string | null
+}
+
+export type AdInput = {
+  title: string
+  description: string
+  category: string
+  event_date: string | null
+  deadline: string | null
+  venue: string | null
+  link: string | null
+  image_url: string | null
+  faculty: string | null
+  target_fields: string[]
+}
+
+export type MyAd = Ad & {
+  status: 'pending' | 'approved' | 'hidden' | 'removed'
+  views: number
+  saves: number
+  open_reports: number
+}
+
+export type AdminAd = MyAd & { report_reasons: string[] }
+
+export type AdminOrganisation = Organisation & { owner_email: string }
+
+export type AdPage = { items: Ad[]; total: number; page: number; page_size: number }
+
+export type Stats = {
+  users: number
+  active_users_7d: number
+  emails: number
+  emails_classified: number
+  organisations_pending: number
+  organisations_approved: number
+  ads_live: number
+  reports_open: number
+  llm: {
+    configured: boolean
+    model?: string
+    day?: string
+    requests?: number
+    prompt_tokens?: number
+    completion_tokens?: number
+  }
+}
