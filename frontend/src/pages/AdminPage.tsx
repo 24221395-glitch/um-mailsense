@@ -9,16 +9,15 @@ import {
   rejectOrganisation,
 } from '../api/admin'
 import { ApiError } from '../api/client'
-import NavBar from '../components/NavBar'
 import SegmentTabs from '../components/SegmentTabs'
 import { segmentLabel } from '../segments'
 import type { AdminAd, AdminOrganisation, Stats } from '../types/api'
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-xl font-semibold text-slate-900">{value}</p>
+    <div className="rounded-xl border border-line bg-surface p-3">
+      <p className="text-xs text-muted">{label}</p>
+      <p className="text-xl font-semibold text-ink">{value}</p>
     </div>
   )
 }
@@ -76,10 +75,9 @@ export default function AdminPage() {
 
   if (error === 'Admins only.') {
     return (
-      <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-        <NavBar />
-        <p className="py-10 text-center text-sm text-slate-500">This page is for admins only.</p>
-      </main>
+      <div className="mx-auto w-full max-w-3xl">
+        <p className="py-10 text-center text-sm text-muted">This page is for admins only.</p>
+      </div>
     )
   }
 
@@ -87,11 +85,10 @@ export default function AdminPage() {
   const tokens = llm?.configured ? (llm.prompt_tokens ?? 0) + (llm.completion_tokens ?? 0) : null
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <h1 className="mb-4 text-2xl font-bold text-slate-900">Admin</h1>
+    <div className="mx-auto w-full max-w-3xl">
+      <h1 className="mb-4 text-2xl font-bold text-ink">Admin</h1>
       {error && (
-        <p role="alert" className="mb-3 text-sm text-red-600">
+        <p role="alert" className="mb-3 text-sm text-danger">
           {error}
         </p>
       )}
@@ -104,15 +101,15 @@ export default function AdminPage() {
           <Stat label="Live posts" value={stats.ads_live} />
           <Stat label="Clubs pending" value={stats.organisations_pending} />
           <Stat label="Open reports" value={stats.reports_open} />
-          <div className="col-span-2 rounded-xl border border-slate-200 bg-white p-3 text-sm">
-            <p className="text-xs text-slate-500">AI usage today</p>
+          <div className="col-span-2 rounded-xl border border-line bg-surface p-3 text-sm">
+            <p className="text-xs text-muted">AI usage today</p>
             {llm?.configured ? (
-              <p className="text-slate-800">
+              <p className="text-ink">
                 {llm.requests} requests · {tokens?.toLocaleString()} tokens
-                <span className="block text-xs text-slate-400">{llm.model}</span>
+                <span className="block text-xs text-faint">{llm.model}</span>
               </p>
             ) : (
-              <p className="text-amber-700">AI not configured (LLM_API_KEY missing)</p>
+              <p className="text-warn">AI not configured (LLM_API_KEY missing)</p>
             )}
           </div>
         </section>
@@ -131,37 +128,37 @@ export default function AdminPage() {
 
       {tab === 'orgs' && (
         <ul className="space-y-3">
-          {orgs.length === 0 && <p className="text-sm text-slate-400">No pending applications.</p>}
+          {orgs.length === 0 && <p className="text-sm text-faint">No pending applications.</p>}
           {orgs.map((o) => (
-            <li key={o.id} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm">
-              <p className="font-semibold text-slate-900">{o.name}</p>
-              <p className="text-slate-500">
+            <li key={o.id} className="rounded-2xl border border-line bg-surface p-4 text-sm">
+              <p className="font-semibold text-ink">{o.name}</p>
+              <p className="text-muted">
                 {o.contact_email} · applied by {o.owner_email}
               </p>
-              {o.faculty && <p className="text-slate-500">{o.faculty}</p>}
+              {o.faculty && <p className="text-muted">{o.faculty}</p>}
               {o.website && (
                 <a
                   href={o.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 underline"
+                  className="text-accent underline"
                 >
                   {o.website}
                 </a>
               )}
-              {o.description && <p className="mt-2 text-slate-700">{o.description}</p>}
+              {o.description && <p className="mt-2 text-ink-2">{o.description}</p>}
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
                   onClick={() => act(() => approveOrganisation(o.id))}
-                  className="rounded-xl bg-green-600 px-3 py-1.5 text-white"
+                  className="rounded-xl bg-success px-3 py-1.5 text-on-accent"
                 >
                   Approve
                 </button>
                 <button
                   type="button"
                   onClick={() => reject(o)}
-                  className="rounded-xl border border-red-200 px-3 py-1.5 text-red-600"
+                  className="rounded-xl border border-danger/40 px-3 py-1.5 text-danger"
                 >
                   Reject
                 </button>
@@ -173,7 +170,7 @@ export default function AdminPage() {
 
       {tab === 'ads' && (
         <>
-          <label className="mb-3 flex items-center gap-2 text-sm text-slate-600">
+          <label className="mb-3 flex items-center gap-2 text-sm text-muted">
             <input
               type="checkbox"
               checked={reportedOnly}
@@ -182,16 +179,16 @@ export default function AdminPage() {
             Only reported posts
           </label>
           <ul className="space-y-3">
-            {ads.length === 0 && <p className="text-sm text-slate-400">Nothing to review.</p>}
+            {ads.length === 0 && <p className="text-sm text-faint">Nothing to review.</p>}
             {ads.map((ad) => (
-              <li key={ad.id} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm">
-                <p className="font-semibold text-slate-900">{ad.title}</p>
-                <p className="text-slate-500">
+              <li key={ad.id} className="rounded-2xl border border-line bg-surface p-4 text-sm">
+                <p className="font-semibold text-ink">{ad.title}</p>
+                <p className="text-muted">
                   {ad.organisation_name} · {segmentLabel(ad.category)} · {ad.status}
                 </p>
-                <p className="mt-1 line-clamp-3 text-slate-700">{ad.description}</p>
+                <p className="mt-1 line-clamp-3 text-ink-2">{ad.description}</p>
                 {ad.report_reasons.length > 0 && (
-                  <ul className="mt-2 list-disc pl-5 text-red-600">
+                  <ul className="mt-2 list-disc pl-5 text-danger">
                     {ad.report_reasons.map((r, i) => (
                       <li key={i}>{r}</li>
                     ))}
@@ -202,7 +199,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => act(() => moderateAd(ad.id, 'approved'))}
-                      className="rounded-xl bg-green-600 px-3 py-1.5 text-white"
+                      className="rounded-xl bg-success px-3 py-1.5 text-on-accent"
                     >
                       {ad.status === 'pending' ? 'Approve' : 'Restore'}
                     </button>
@@ -211,7 +208,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => act(() => moderateAd(ad.id, 'approved'))}
-                      className="rounded-xl border border-slate-200 px-3 py-1.5 text-slate-600"
+                      className="rounded-xl border border-line px-3 py-1.5 text-muted"
                     >
                       Keep (dismiss reports)
                     </button>
@@ -220,7 +217,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => act(() => moderateAd(ad.id, 'hidden'))}
-                      className="rounded-xl border border-amber-300 px-3 py-1.5 text-amber-700"
+                      className="rounded-xl border border-line-strong px-3 py-1.5 text-warn"
                     >
                       Hide
                     </button>
@@ -228,7 +225,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => act(() => moderateAd(ad.id, 'removed'))}
-                    className="rounded-xl border border-red-200 px-3 py-1.5 text-red-600"
+                    className="rounded-xl border border-danger/40 px-3 py-1.5 text-danger"
                   >
                     Remove
                   </button>
@@ -238,6 +235,6 @@ export default function AdminPage() {
           </ul>
         </>
       )}
-    </main>
+    </div>
   )
 }

@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { getEmail, updateEmail } from '../api/emails'
 import DeadlineBadge from '../components/DeadlineBadge'
-import NavBar from '../components/NavBar'
 import { SEGMENT_ORDER, segmentLabel } from '../segments'
 import type { EmailDetail } from '../types/api'
 
@@ -21,7 +20,7 @@ function Linkified({ text }: { text: string }) {
             href={part}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="break-all text-blue-600 underline"
+            className="break-all text-accent underline"
           >
             {part}
           </a>
@@ -81,56 +80,52 @@ export default function EmailDetailPage() {
 
   if (error) {
     return (
-      <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-        <NavBar />
-        <p className="py-10 text-center text-sm text-slate-500">{error}</p>
-      </main>
+      <div className="mx-auto w-full max-w-3xl">
+        <p className="py-10 text-center text-sm text-muted">{error}</p>
+      </div>
     )
   }
-  if (!email) return <p className="p-10 text-center text-sm text-slate-400">Loading…</p>
+  if (!email) return <p className="p-10 text-center text-sm text-faint">Loading…</p>
 
   const isNotice = email.segment === 'UM_NOTICE'
   const hasDetails =
     email.deadline || email.event_date || email.venue || email.organiser || email.registration_link
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <button type="button" onClick={() => navigate(-1)} className="mb-3 text-sm text-blue-600">
+    <div className="mx-auto w-full max-w-3xl">
+      <button type="button" onClick={() => navigate(-1)} className="mb-3 text-sm text-accent">
         ← Back
       </button>
 
       <article
-        className={`rounded-2xl border bg-white p-4 ${
-          isNotice ? 'border-amber-300' : 'border-slate-200'
+        className={`rounded-2xl border bg-surface p-4 ${
+          isNotice ? 'border-line-strong' : 'border-line'
         }`}
       >
         {isNotice && (
-          <p className="mb-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+          <p className="mb-2 inline-block rounded-full bg-warn-soft px-2.5 py-0.5 text-xs font-semibold text-warn">
             Official UM notice
           </p>
         )}
-        <h1 className="text-lg font-semibold text-slate-900">{email.subject}</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-lg font-semibold text-ink">{email.subject}</h1>
+        <p className="mt-1 text-sm text-muted">
           {email.sender_name}
-          {email.sender_email && (
-            <span className="text-slate-400"> &lt;{email.sender_email}&gt;</span>
-          )}
+          {email.sender_email && <span className="text-faint"> &lt;{email.sender_email}&gt;</span>}
         </p>
-        <p className="text-xs text-slate-400">{formatDateTime(email.received_at)}</p>
+        <p className="text-xs text-faint">{formatDateTime(email.received_at)}</p>
 
         {email.recommendation === 'for_you' && email.recommendation_reason && (
-          <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+          <p className="mt-3 rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
             For you: {email.recommendation_reason}
           </p>
         )}
 
         {hasDetails && (
-          <dl className="mt-3 space-y-1.5 rounded-xl bg-slate-50 p-3 text-sm">
+          <dl className="mt-3 space-y-1.5 rounded-xl bg-surface-2 p-3 text-sm">
             {email.deadline && (
               <div className="flex items-center gap-2">
-                <dt className="font-medium text-slate-700">Deadline:</dt>
-                <dd className="flex items-center gap-2 text-slate-600">
+                <dt className="font-medium text-ink-2">Deadline:</dt>
+                <dd className="flex items-center gap-2 text-muted">
                   {formatDateTime(email.deadline)}
                   <DeadlineBadge deadline={email.deadline} now={now} />
                 </dd>
@@ -138,20 +133,20 @@ export default function EmailDetailPage() {
             )}
             {email.event_date && (
               <div>
-                <dt className="inline font-medium text-slate-700">When: </dt>
-                <dd className="inline text-slate-600">{formatDateTime(email.event_date)}</dd>
+                <dt className="inline font-medium text-ink-2">When: </dt>
+                <dd className="inline text-muted">{formatDateTime(email.event_date)}</dd>
               </div>
             )}
             {email.venue && (
               <div>
-                <dt className="inline font-medium text-slate-700">Where: </dt>
-                <dd className="inline text-slate-600">{email.venue}</dd>
+                <dt className="inline font-medium text-ink-2">Where: </dt>
+                <dd className="inline text-muted">{email.venue}</dd>
               </div>
             )}
             {email.organiser && (
               <div>
-                <dt className="inline font-medium text-slate-700">Organiser: </dt>
-                <dd className="inline text-slate-600">{email.organiser}</dd>
+                <dt className="inline font-medium text-ink-2">Organiser: </dt>
+                <dd className="inline text-muted">{email.organiser}</dd>
               </div>
             )}
             {email.registration_link && (
@@ -159,16 +154,16 @@ export default function EmailDetailPage() {
                 href={email.registration_link}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="mt-2 block rounded-xl bg-blue-600 px-4 py-2 text-center font-semibold text-white"
+                className="mt-2 block rounded-xl bg-accent px-4 py-2 text-center font-semibold text-on-accent"
               >
                 Register / apply
               </a>
             )}
-            <p className="pt-1 text-xs text-slate-400">Details found by AI. Please double-check.</p>
+            <p className="pt-1 text-xs text-faint">Details found by AI. Please double-check.</p>
           </dl>
         )}
 
-        <div className="mt-4 whitespace-pre-line break-words text-sm leading-relaxed text-slate-800">
+        <div className="mt-4 whitespace-pre-line break-words text-sm leading-relaxed text-ink">
           <Linkified text={email.body_text || email.snippet} />
         </div>
 
@@ -177,21 +172,21 @@ export default function EmailDetailPage() {
             href={email.web_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-block text-sm text-blue-600 underline"
+            className="mt-4 inline-block text-sm text-accent underline"
           >
             {openOriginalLabel(email.web_link)} ↗
           </a>
         )}
       </article>
 
-      <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <label className="block text-sm font-medium text-slate-700">
+      <section className="mt-4 rounded-2xl border border-line bg-surface p-4">
+        <label className="block text-sm font-medium text-ink-2">
           Segment
           <select
             value={email.segment ?? ''}
             disabled={moving}
             onChange={(e) => move(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm"
           >
             {!email.segment && <option value="">Sorting…</option>}
             {SEGMENT_ORDER.map((code) => (
@@ -201,17 +196,17 @@ export default function EmailDetailPage() {
             ))}
           </select>
         </label>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-xs text-faint">
           {email.segment_reason ? `Why: ${email.segment_reason}. ` : ''}
           If you move it, future emails from this sender will go there too.
         </p>
         <Link
           to={`/inbox?segment=${email.segment ?? ''}`}
-          className="mt-2 inline-block text-sm text-blue-600"
+          className="mt-2 inline-block text-sm text-accent"
         >
           See all in {segmentLabel(email.segment)}
         </Link>
       </section>
-    </main>
+    </div>
   )
 }

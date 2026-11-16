@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { createAd, deleteAd, myAds, updateAd } from '../api/ads'
 import { ApiError } from '../api/client'
 import { applyOrganisation, getMyOrganisation, updateMyOrganisation } from '../api/organisations'
-import NavBar from '../components/NavBar'
 import { AD_CATEGORIES, FACULTIES } from '../faculties'
 import { segmentLabel } from '../segments'
 import type { AdInput, MyAd, Organisation, OrganisationInput } from '../types/api'
 
-const input = 'mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm'
-const label = 'block text-sm font-medium text-slate-700'
+const input = 'mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm'
+const label = 'block text-sm font-medium text-ink-2'
 
 /** ISO (UTC) -> "YYYY-MM-DDTHH:mm" in Malaysia time, for <input type="datetime-local">. */
 function toMyt(iso: string | null): string {
@@ -61,7 +60,7 @@ function OrgForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+    <form onSubmit={submit} className="space-y-3 rounded-2xl border border-line bg-surface p-4">
       <label className={label}>
         Organisation name
         <input
@@ -115,13 +114,13 @@ function OrgForm({
         />
       </label>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
       <button
         disabled={busy}
-        className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white disabled:opacity-50"
+        className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent disabled:opacity-50"
       >
         {busy ? 'Sending…' : submitLabel}
       </button>
@@ -173,7 +172,10 @@ function AdForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-2xl border border-blue-200 bg-white p-4">
+    <form
+      onSubmit={submit}
+      className="space-y-3 rounded-2xl border border-line-strong bg-surface p-4"
+    >
       <label className={label}>
         Title
         <input
@@ -279,21 +281,21 @@ function AdForm({
         />
       </label>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
       <div className="flex gap-2">
         <button
           disabled={busy}
-          className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 font-semibold text-white disabled:opacity-50"
+          className="flex-1 rounded-xl bg-accent px-4 py-2.5 font-semibold text-on-accent disabled:opacity-50"
         >
           {busy ? 'Saving…' : 'Publish'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-600"
+          className="rounded-xl border border-line px-4 py-2.5 text-sm text-muted"
         >
           Cancel
         </button>
@@ -303,9 +305,9 @@ function AdForm({
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  approved: 'bg-green-100 text-green-700',
-  pending: 'bg-amber-100 text-amber-700',
-  hidden: 'bg-slate-200 text-slate-600',
+  approved: 'bg-success-soft text-success',
+  pending: 'bg-warn-soft text-warn',
+  hidden: 'bg-surface-3 text-muted',
 }
 
 export default function OrganisationPage() {
@@ -349,7 +351,7 @@ export default function OrganisationPage() {
     await loadAds()
   }
 
-  if (loading) return <p className="p-10 text-center text-sm text-slate-400">Loading…</p>
+  if (loading) return <p className="p-10 text-center text-sm text-faint">Loading…</p>
 
   const orgInput: OrganisationInput = org
     ? {
@@ -362,15 +364,12 @@ export default function OrganisationPage() {
     : { name: '', description: '', contact_email: '', website: null, faculty: null }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <h1 className="mb-1 text-2xl font-bold text-slate-900">
-        {org ? org.name : 'Register your club'}
-      </h1>
+    <div className="mx-auto w-full max-w-3xl">
+      <h1 className="mb-1 text-2xl font-bold text-ink">{org ? org.name : 'Register your club'}</h1>
 
       {!org && (
         <>
-          <p className="mb-4 text-sm text-slate-500">
+          <p className="mb-4 text-sm text-muted">
             Verified clubs and offices can post programmes on the community board. An admin checks
             every application.
           </p>
@@ -387,7 +386,7 @@ export default function OrganisationPage() {
           <p
             role="status"
             className={`rounded-xl p-3 text-sm ${
-              org.status === 'pending' ? 'bg-amber-50 text-amber-800' : 'bg-red-50 text-red-700'
+              org.status === 'pending' ? 'bg-warn-soft text-warn' : 'bg-danger-soft text-danger'
             }`}
           >
             {org.status === 'pending'
@@ -404,11 +403,7 @@ export default function OrganisationPage() {
               }}
             />
           ) : (
-            <button
-              type="button"
-              onClick={() => setEditOrg(true)}
-              className="text-sm text-blue-600"
-            >
+            <button type="button" onClick={() => setEditOrg(true)} className="text-sm text-accent">
               Edit application
             </button>
           )}
@@ -417,7 +412,7 @@ export default function OrganisationPage() {
 
       {org?.status === 'approved' && (
         <div className="space-y-4">
-          <p className="text-sm text-green-700">✓ Verified organisation</p>
+          <p className="text-sm text-success">✓ Verified organisation</p>
           {editing ? (
             <AdForm
               initial={editing === 'new' ? EMPTY_AD : editing}
@@ -428,21 +423,21 @@ export default function OrganisationPage() {
             <button
               type="button"
               onClick={() => setEditing('new')}
-              className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
+              className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent"
             >
               + New post
             </button>
           )}
 
-          <h2 className="pt-2 font-semibold text-slate-900">Your posts</h2>
-          {ads.length === 0 && <p className="text-sm text-slate-400">No posts yet.</p>}
+          <h2 className="pt-2 font-semibold text-ink">Your posts</h2>
+          {ads.length === 0 && <p className="text-sm text-faint">No posts yet.</p>}
           <ul className="space-y-3">
             {ads.map((ad) => (
-              <li key={ad.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+              <li key={ad.id} className="rounded-2xl border border-line bg-surface p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-900">{ad.title}</p>
-                    <p className="text-xs text-slate-500">{segmentLabel(ad.category)}</p>
+                    <p className="truncate font-semibold text-ink">{ad.title}</p>
+                    <p className="text-xs text-muted">{segmentLabel(ad.category)}</p>
                   </div>
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -452,17 +447,17 @@ export default function OrganisationPage() {
                     {ad.status === 'approved' ? 'Live' : ad.status}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-muted">
                   👁 {ad.views} views · ♥ {ad.saves} saves
                   {ad.open_reports > 0 && (
-                    <span className="text-red-600"> · ⚑ {ad.open_reports} reports</span>
+                    <span className="text-danger"> · ⚑ {ad.open_reports} reports</span>
                   )}
                 </p>
                 <div className="mt-2 flex gap-3 text-sm">
-                  <button type="button" onClick={() => setEditing(ad)} className="text-blue-600">
+                  <button type="button" onClick={() => setEditing(ad)} className="text-accent">
                     Edit
                   </button>
-                  <button type="button" onClick={() => removeAd(ad)} className="text-red-600">
+                  <button type="button" onClick={() => removeAd(ad)} className="text-danger">
                     Delete
                   </button>
                 </div>
@@ -471,6 +466,6 @@ export default function OrganisationPage() {
           </ul>
         </div>
       )}
-    </main>
+    </div>
   )
 }

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { getSegmentCounts } from '../api/emails'
-import NavBar from '../components/NavBar'
 import { SEGMENT_ORDER, UNSORTED, segmentLabel } from '../segments'
 import type { SegmentCount } from '../types/api'
 
@@ -33,9 +32,8 @@ export default function SegmentPage() {
   const unsorted = byCode.get(UNSORTED)
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <h1 className="mb-4 text-2xl font-bold text-slate-900">Segments</h1>
+    <div className="mx-auto w-full max-w-3xl">
+      <h1 className="mb-4 text-2xl font-bold text-ink">Segments</h1>
       <ul className="grid grid-cols-2 gap-3">
         {SEGMENT_ORDER.map((code) => {
           const c = byCode.get(code)
@@ -44,18 +42,18 @@ export default function SegmentPage() {
             <li key={code}>
               <Link
                 to={`/inbox?segment=${code}`}
-                className={`block h-full rounded-2xl border bg-white p-4 hover:shadow-sm ${
-                  official ? 'border-amber-300' : 'border-slate-200'
+                className={`block h-full rounded-2xl border bg-surface p-4 hover:border-line-strong ${
+                  official ? 'border-line-strong' : 'border-line'
                 }`}
               >
                 <span className="text-2xl" aria-hidden="true">
                   {ICONS[code]}
                 </span>
-                <p className="mt-2 font-semibold text-slate-900">{segmentLabel(code)}</p>
-                <p className="text-sm text-slate-500">
+                <p className="mt-2 font-semibold text-ink">{segmentLabel(code)}</p>
+                <p className="text-sm text-muted">
                   {c?.total ?? 0} emails
                   {c && c.unread > 0 && (
-                    <span className="ml-1 font-semibold text-blue-600">· {c.unread} new</span>
+                    <span className="ml-1 font-semibold text-accent">· {c.unread} new</span>
                   )}
                 </p>
               </Link>
@@ -64,10 +62,8 @@ export default function SegmentPage() {
         })}
       </ul>
       {unsorted && unsorted.total > 0 && (
-        <p className="mt-4 text-sm text-slate-500">
-          {unsorted.total} emails are still being sorted…
-        </p>
+        <p className="mt-4 text-sm text-muted">{unsorted.total} emails are still being sorted…</p>
       )}
-    </main>
+    </div>
   )
 }

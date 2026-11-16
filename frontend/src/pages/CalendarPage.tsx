@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { getDeadlines, getNotificationSettings, saveNotificationSettings } from '../api/calendar'
 import { ApiError } from '../api/client'
 import DeadlineCalendar from '../components/DeadlineCalendar'
-import NavBar from '../components/NavBar'
 import { notificationsSupported } from '../hooks/useDeadlineReminders'
 import { SEGMENT_ORDER, segmentLabel } from '../segments'
 import type { CalendarItem, NotificationSettings } from '../types/api'
@@ -54,26 +53,23 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-slate-50 p-4">
-      <NavBar />
-      <h1 className="text-2xl font-bold text-slate-900">Deadlines</h1>
-      <p className="mb-4 text-sm text-slate-500">From your emails and the posts you saved.</p>
+    <div className="mx-auto w-full max-w-3xl">
+      <h1 className="text-2xl font-bold text-ink">Deadlines</h1>
+      <p className="mb-4 text-sm text-muted">From your emails and the posts you saved.</p>
 
       <DeadlineCalendar items={items} month={month} onMonthChange={setMonth} now={now} />
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="font-semibold text-slate-900">Reminders</h2>
-        <p className="mt-1 text-sm text-slate-500">
+      <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
+        <h2 className="font-semibold text-ink">Reminders</h2>
+        <p className="mt-1 text-sm text-muted">
           A reminder 3 days and 1 day before each deadline, while MailSense is open in your browser.
         </p>
 
         {perm === 'unsupported' && (
-          <p className="mt-3 text-sm text-amber-700">
-            This browser does not support notifications.
-          </p>
+          <p className="mt-3 text-sm text-warn">This browser does not support notifications.</p>
         )}
         {perm === 'denied' && (
-          <p className="mt-3 text-sm text-amber-700">
+          <p className="mt-3 text-sm text-warn">
             Notifications are blocked. Allow them for this site in your browser settings.
           </p>
         )}
@@ -81,7 +77,7 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={enableBrowserReminders}
-            className="mt-3 w-full rounded-xl bg-blue-600 px-4 py-2.5 font-semibold text-white"
+            className="mt-3 w-full rounded-xl bg-accent px-4 py-2.5 font-semibold text-on-accent"
           >
             Turn on browser reminders
           </button>
@@ -89,7 +85,7 @@ export default function CalendarPage() {
 
         {settings && (
           <div className="mt-4 space-y-3">
-            <label className="flex items-center justify-between text-sm text-slate-700">
+            <label className="flex items-center justify-between text-sm text-ink-2">
               Reminders on
               <input
                 type="checkbox"
@@ -98,13 +94,13 @@ export default function CalendarPage() {
               />
             </label>
             <fieldset disabled={!settings.enabled} className="space-y-2 disabled:opacity-50">
-              <legend className="mb-1 text-sm font-medium text-slate-700">Remind me about</legend>
+              <legend className="mb-1 text-sm font-medium text-ink-2">Remind me about</legend>
               {SEGMENT_ORDER.filter((s) => s !== 'NOT_FOR_ME').map((code) => {
                 const on = !settings.muted_segments.includes(code)
                 return (
                   <label
                     key={code}
-                    className="flex items-center justify-between text-sm text-slate-600"
+                    className="flex items-center justify-between text-sm text-muted"
                   >
                     {segmentLabel(code)}
                     <input
@@ -126,6 +122,6 @@ export default function CalendarPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   )
 }
