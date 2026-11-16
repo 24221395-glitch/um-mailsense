@@ -34,3 +34,11 @@ Thumbs.db
 # Uploaded CVs and local data
 backend/uploads/
 *.sqlite3
+
+# Local databases
+backend/*.db
+
+# Model weights (never commit)
+*.safetensors
+*.gguf
+models/

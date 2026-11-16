@@ -1,0 +1,17 @@
+-e ../ai
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlalchemy>=2.0.36
+alembic>=1.14
+pydantic-settings>=2.6
+email-validator>=2.2
+httpx>=0.28
+python-multipart>=0.0.20
+msal>=1.31
+pyjwt>=2.10
+cryptography>=44
+beautifulsoup4>=4.12
+
+# dev / test
+pytest>=8.3
+ruff>=0.8
