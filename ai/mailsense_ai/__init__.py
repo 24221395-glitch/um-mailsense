@@ -11,7 +11,7 @@ from mailsense_ai.contracts import (
     RecommendItem,
     Segment,
 )
-from mailsense_ai.cv_parser import parse_cv
+from mailsense_ai.cv_parser import CVParseError, parse_cv
 from mailsense_ai.extractor import extract_details
 from mailsense_ai.llm_client import BudgetExceeded, LLMClient, LLMError, configure, get_client
 from mailsense_ai.recommender import recommend
@@ -19,6 +19,7 @@ from mailsense_ai.recommender import recommend
 __all__ = [
     "SEGMENT_LABELS",
     "BudgetExceeded",
+    "CVParseError",
     "CVProfile",
     "Classification",
     "EmailDetails",

@@ -18,6 +18,7 @@ class EmailOut(BaseModel):
     segment: str | None
     deadline: datetime | None
     recommendation: str | None
+    recommendation_reason: str | None
 
     @field_serializer("received_at", "deadline")
     def _utc(self, dt: datetime | None):
@@ -34,7 +35,6 @@ class EmailDetailOut(EmailOut):
     segment_confidence: float | None
     segment_is_manual: bool
     segment_reason: str | None
-    recommendation_reason: str | None
 
     @field_serializer("event_date")
     def _utc_event(self, dt: datetime | None):

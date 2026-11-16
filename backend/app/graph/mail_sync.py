@@ -99,7 +99,9 @@ def process_user_ai(user_id: int) -> int:
         if not user:
             return 0
         try:
-            return ai_bridge.process_pending(db, user)
+            done = ai_bridge.process_pending(db, user)
+            ai_bridge.recommend_pending(db, user)
+            return done
         except Exception:
             log.exception("AI processing failed for user %s; will retry next sync", user_id)
             return 0

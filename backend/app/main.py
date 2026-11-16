@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.graph.mail_sync import run_scheduler
-from app.routers import auth, emails
+from app.routers import auth, emails, profile
 from app.services import ai_bridge
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -42,6 +42,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(emails.router)
+app.include_router(profile.router)
 
 
 @app.get("/api/v1/health", tags=["health"])

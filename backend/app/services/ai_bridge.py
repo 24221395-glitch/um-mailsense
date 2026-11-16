@@ -10,11 +10,11 @@ import threading
 from datetime import UTC, datetime
 
 import mailsense_ai as ai
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.models import Email, User
+from app.models import CVProfile, Email, User
 
 log = logging.getLogger(__name__)
 
@@ -133,3 +133,87 @@ def process_pending(db: Session, user: User, limit: int = 200) -> int:
     finally:
         lock.release()
     return done
+
+
+# --- CV profile and recommendations (W3-AI-03) --------------------------------------------
+
+RECOMMEND_LIMIT = 150  # newest emails scored per run; older mail is not worth the cost
+
+
+def parse_cv(data: bytes) -> ai.CVProfile:
+    """Raises ai.CVParseError (bad file) or ai.LLMError (AI unavailable)."""
+    if not _configured and not configure():
+        raise ai.LLMError("AI is not set up yet (LLM_API_KEY missing)")
+    return ai.parse_cv(data)
+
+
+def _profile_for(db: Session, user: User) -> ai.CVProfile | None:
+    row = db.scalar(select(CVProfile).where(CVProfile.user_id == user.id))
+    if row is None or not (row.field_of_study or row.skills or row.interests):
+        return None
+    return ai.CVProfile(
+        field_of_study=row.field_of_study,
+        year_of_study=row.year_of_study,
+        skills=row.skills or [],
+        interests=row.interests or [],
+        summary=row.summary or "",
+    )
+
+
+def _email_item(email: Email) -> ai.RecommendItem:
+    text = f"From: {email.sender_name}\n{email.snippet or (email.body_text or '')[:500]}"
+    return ai.RecommendItem(
+        id=str(email.id),
+        kind="email",
+        title=email.subject,
+        text=text,
+        segment=email.segment if email.segment in SEGMENTS else None,
+    )
+
+
+def reset_recommendations(db: Session, user: User) -> None:
+    """Profile changed: every email must be scored again."""
+    db.execute(
+        update(Email)
+        .where(Email.user_id == user.id)
+        .values(recommendation=None, recommendation_score=None, recommendation_reason=None)
+    )
+    db.commit()
+
+
+def recommend_pending(db: Session, user: User) -> int:
+    """Label sorted emails "for you" / "not for you" against the user's profile (FR-23/24/25)."""
+    profile = _profile_for(db, user)
+    if profile is None:
+        return 0
+    if not _configured:
+        configure()  # without an LLM the recommender falls back to keyword matching
+    lock = _lock_for(-user.id)  # separate from the classification lock
+    if not lock.acquire(blocking=False):
+        return 0
+    try:
+        emails = db.scalars(
+            select(Email)
+            .where(
+                Email.user_id == user.id,
+                Email.classified_at.is_not(None),
+                Email.recommendation.is_(None),
+            )
+            .order_by(Email.received_at.desc())
+            .limit(RECOMMEND_LIMIT)
+        ).all()
+        if not emails:
+            return 0
+        try:
+            recs = ai.recommend(profile, [_email_item(e) for e in emails])
+        except ai.BudgetExceeded:
+            log.warning("LLM daily budget reached; recommendations wait until tomorrow")
+            return 0
+        for email, rec in zip(emails, recs, strict=True):
+            email.recommendation = rec.label
+            email.recommendation_score = rec.score
+            email.recommendation_reason = rec.reason
+        db.commit()
+        return len(emails)
+    finally:
+        lock.release()

@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getMe, signIn, signOut } from '../api/auth'
 import { ApiError } from '../api/client'
 import { getSegmentCounts, listEmails, syncNow } from '../api/emails'
+import { getProfile } from '../api/profile'
 import EmailCard from '../components/EmailCard'
 import SegmentTabs from '../components/SegmentTabs'
 import { SEGMENT_ORDER, UNSORTED, segmentLabel } from '../segments'
 import type { Email, SegmentCount, User } from '../types/api'
+
+const FOR_YOU = 'FOR_YOU'
 
 function formatDay(iso: string): string {
   return new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short' })
@@ -21,6 +24,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [polls, setPolls] = useState(0)
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null)
 
   const handleError = useCallback(
     (err: unknown) => {
@@ -31,9 +35,12 @@ export default function InboxPage() {
 
   const load = useCallback(async () => {
     try {
-      const segment = activeCode === 'ALL' ? undefined : activeCode
+      const query =
+        activeCode === FOR_YOU
+          ? { forYou: true }
+          : { segment: activeCode === 'ALL' ? undefined : activeCode }
       const [page, segCounts] = await Promise.all([
-        listEmails({ segment, pageSize: 50 }),
+        listEmails({ ...query, pageSize: 50 }),
         getSegmentCounts(),
       ])
       setEmails(page.items)
@@ -47,6 +54,9 @@ export default function InboxPage() {
 
   useEffect(() => {
     getMe().then(setUser).catch(handleError)
+    getProfile()
+      .then((p) => setHasProfile(p !== null))
+      .catch(() => setHasProfile(null))
   }, [handleError])
 
   useEffect(() => {
@@ -73,6 +83,7 @@ export default function InboxPage() {
     const ordered = [...SEGMENT_ORDER, UNSORTED].filter((code) => byCode.has(code))
     return [
       { code: 'ALL', label: 'All', count: total },
+      { code: FOR_YOU, label: '★ For you' },
       ...ordered.map((code) => ({
         code,
         label: code === UNSORTED ? 'Sorting…' : segmentLabel(code),
@@ -113,6 +124,12 @@ export default function InboxPage() {
           {user && <p className="truncate text-xs text-slate-400">{user.email}</p>}
         </div>
         <div className="flex shrink-0 gap-2">
+          <Link
+            to="/profile"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600"
+          >
+            Profile
+          </Link>
           <button
             type="button"
             onClick={handleSync}
@@ -157,6 +174,12 @@ export default function InboxPage() {
         </p>
       )}
 
+      {hasProfile === false && (
+        <Link to="/profile" className="mb-4 block rounded-xl bg-blue-50 p-3 text-sm text-blue-800">
+          <span className="font-semibold">Upload your CV</span> to see which emails are for you →
+        </Link>
+      )}
+
       <div className="mb-4">
         <SegmentTabs tabs={tabs} activeCode={activeCode} onChange={setActiveCode} />
       </div>
@@ -165,9 +188,13 @@ export default function InboxPage() {
         <p className="py-10 text-center text-sm text-slate-400">Loading your inbox…</p>
       ) : emails.length === 0 ? (
         <p className="py-10 text-center text-sm text-slate-400">
-          {activeCode === 'ALL'
+          {waitingForFirstSync
             ? 'Fetching your emails… this can take a moment.'
-            : 'No emails here.'}
+            : activeCode === FOR_YOU
+              ? hasProfile
+                ? 'Nothing matched your profile yet. Recommendations update as mail arrives.'
+                : 'Add your profile to get recommendations.'
+              : 'No emails here.'}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -183,6 +210,7 @@ export default function InboxPage() {
                 segmentLabel={segmentLabel(email.segment)}
                 deadlineLabel={email.deadline ? `Due ${formatDay(email.deadline)}` : undefined}
                 recommendation={email.recommendation}
+                recommendationReason={email.recommendation_reason ?? undefined}
               />
             </li>
           ))}

@@ -13,6 +13,7 @@ export type Email = {
   segment: string | null // null = not classified by the AI yet
   deadline: string | null
   recommendation: Recommendation
+  recommendation_reason?: string | null
 }
 
 export type EmailDetail = Email & {
@@ -52,6 +53,20 @@ export type User = {
   name: string
   role: 'student' | 'organisation' | 'admin'
   accounts: Account[]
+}
+
+export type ProfileInput = {
+  field_of_study: string | null
+  year_of_study: number | null
+  skills: string[]
+  interests: string[]
+}
+
+export type Profile = ProfileInput & {
+  summary: string
+  source: 'cv' | 'manual'
+  cv_filename: string | null
+  updated_at: string
 }
 
 export type Providers = {
