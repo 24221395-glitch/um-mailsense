@@ -326,25 +326,30 @@ export default function AdBoardPage() {
                     <img
                       src={ad.image_url}
                       alt=""
-                      className="h-24 w-24 shrink-0 rounded-xl object-cover"
+                      className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-24 sm:w-24"
                     />
                   ) : (
                     <span
-                      className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl text-white"
+                      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-white sm:h-24 sm:w-24"
                       style={{ background: `linear-gradient(135deg, ${fg}, #5b3ff8)` }}
                     >
-                      <Ico className="h-10 w-10" />
+                      <Ico className="h-8 w-8 sm:h-10 sm:w-10" />
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-lg font-semibold text-ink">
+                    <span className="line-clamp-2 block font-semibold text-ink sm:truncate sm:text-lg">
                       {ad.title}
                     </span>
                     <span className="block truncate text-sm text-ink-2">
                       {ad.organisation_name}
                     </span>
                     <span className="mt-1 line-clamp-2 text-sm text-muted">{ad.description}</span>
-                    <span className="mt-2 flex flex-wrap gap-2">
+                    <span className="mt-2 flex flex-wrap items-center gap-2">
+                      {when && (
+                        <span className="rounded-md bg-danger-soft px-2 py-0.5 text-xs font-semibold text-danger sm:hidden">
+                          {shortDate(when)}
+                        </span>
+                      )}
                       <span
                         className="rounded-md px-2 py-0.5 text-xs font-semibold"
                         style={{ background: `${fg}1a`, color: fg }}
@@ -364,9 +369,9 @@ export default function AdBoardPage() {
                     </span>
                   </span>
                 </button>
-                <div className="flex shrink-0 flex-col items-end justify-between">
+                <div className="flex shrink-0 flex-col items-end justify-between gap-2">
                   {when && (
-                    <div className="text-right">
+                    <div className="hidden text-right sm:block">
                       <p className="text-xs text-faint">{ad.deadline ? 'Deadline' : 'Date'}</p>
                       <p className="text-sm font-semibold text-ink">{shortDate(when)}</p>
                     </div>

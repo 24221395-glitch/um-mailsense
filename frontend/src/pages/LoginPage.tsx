@@ -15,6 +15,7 @@ import {
   Logo,
   MailIcon,
   MegaphoneIcon,
+  MenuIcon,
   SEGMENT_ICONS,
   ShieldIcon,
   SparkleIcon,
@@ -430,6 +431,7 @@ export default function LoginPage() {
   const [providers, setProviders] = useState<Providers>({ microsoft: false, google: true })
   const error = params.get('error')
   const [notReady, setNotReady] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const showNotReady = () => {
     setNotReady(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -462,12 +464,54 @@ export default function LoginPage() {
               </a>
             ))}
           </nav>
-          <SignInButton
-            ready={providers.google}
-            onNotReady={showNotReady}
-            className="hidden px-4 py-2.5 text-sm sm:inline-flex"
-          />
+          <div className="flex items-center gap-2">
+            <SignInButton
+              ready={providers.google}
+              onNotReady={showNotReady}
+              className="hidden px-4 py-2.5 text-sm sm:inline-flex"
+            />
+            <button
+              type="button"
+              onClick={() => setNavOpen((v) => !v)}
+              aria-label={navOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={navOpen}
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-surface text-ink shadow-sm hover:border-accent hover:text-accent lg:hidden"
+            >
+              {navOpen ? (
+                <span className="text-2xl leading-none">×</span>
+              ) : (
+                <MenuIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
+        {/* phone / tablet section menu */}
+        {navOpen && (
+          <nav
+            aria-label="Sections"
+            className="border-t border-line bg-surface px-4 pb-5 pt-2 shadow-lg lg:hidden"
+          >
+            {NAV.map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setNavOpen(false)}
+                className="flex items-center justify-between rounded-xl px-3 py-3.5 text-base font-medium text-ink hover:bg-accent-soft hover:text-accent"
+              >
+                {label}
+                <ArrowRightIcon className="h-4 w-4 text-faint" />
+              </a>
+            ))}
+            <SignInButton
+              ready={providers.google}
+              onNotReady={() => {
+                setNavOpen(false)
+                showNotReady()
+              }}
+              className="mt-3 w-full py-3.5"
+            />
+          </nav>
+        )}
       </header>
 
       <main>

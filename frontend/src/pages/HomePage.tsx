@@ -171,7 +171,7 @@ export default function HomePage() {
       </header>
 
       {/* stats */}
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard Icon={MailIcon} value={total} label="Total Emails" color="#5b3ff8" />
         <StatCard Icon={SparkleIcon} value={sorted} label="AI Sorted" color="#7c5cff" />
         <StatCard
@@ -208,7 +208,7 @@ export default function HomePage() {
             View All <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 xl:grid-cols-7">
           {TILE_SEGMENTS.map((code) => (
             <SegmentTile
               key={code}

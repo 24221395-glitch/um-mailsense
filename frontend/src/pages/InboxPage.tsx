@@ -156,7 +156,7 @@ export default function InboxPage() {
         </Link>
       )}
 
-      <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="mb-5 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 xl:grid-cols-7">
         {TILE_SEGMENTS.map((code) => (
           <SegmentTile
             key={code}

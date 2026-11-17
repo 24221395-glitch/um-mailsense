@@ -66,7 +66,7 @@ function SegmentDonut({ data = {} }: { data?: Record<string, number> }) {
       {total === 0 ? (
         <p className="mt-4 text-sm text-muted">No sorted emails yet.</p>
       ) : (
-        <div className="mt-4 flex flex-wrap items-center gap-6">
+        <div className="mt-4 flex flex-col items-center gap-6 sm:flex-row">
           <svg
             viewBox="0 0 180 180"
             className="h-44 w-44 shrink-0"
@@ -102,7 +102,7 @@ function SegmentDonut({ data = {} }: { data?: Record<string, number> }) {
               Emails
             </text>
           </svg>
-          <ul className="min-w-0 flex-1 space-y-2 text-sm">
+          <ul className="w-full min-w-0 flex-1 space-y-2 text-sm">
             {entries.map(([code, n]) => (
               <li key={code} className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2 text-ink-2">
@@ -196,7 +196,7 @@ export default function AdminPage() {
 
       {stats && (
         <section className="mb-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
             <Stat Icon={UsersIcon} color="#5b3ff8" label="Total Students" value={stats.users} />
             <Stat
               Icon={BuildingIcon}
@@ -224,7 +224,7 @@ export default function AdminPage() {
               value={stats.reports_open}
             />
           </div>
-          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
             <SegmentDonut data={stats.segments_30d} />
             <div className="card p-5">
               <h2 className="font-semibold text-ink">AI usage today</h2>
