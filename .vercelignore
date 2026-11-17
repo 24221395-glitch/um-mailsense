@@ -8,3 +8,16 @@ ai/eval
 qa
 design
 docs
+
+# Local-only files: never upload
+**/.venv
+**/node_modules
+frontend/dist
+*.db
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+.neon
+Theme UI.png

@@ -47,8 +47,8 @@ class Settings(BaseSettings):
     # Comma-separated emails that get the admin role when they sign in.
     admin_emails: str = ""
 
-    # AI — Llama 4 Scout through an OpenAI-compatible API (groq | openrouter | together)
-    llm_provider: str = "groq"
+    # AI — Llama 4 Scout through an OpenAI-compatible API (openrouter | together | groq)
+    llm_provider: str = "openrouter"
     llm_api_key: str = ""
     llm_model: str = ""  # empty = the provider's Llama 4 Scout model
     llm_base_url: str = ""  # only for a provider not in the list

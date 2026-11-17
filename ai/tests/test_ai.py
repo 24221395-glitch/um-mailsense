@@ -56,15 +56,15 @@ def test_request_uses_llama4_scout_json_mode_and_temperature_0():
     client = fake_llm({"segment": "HACKATHON", "confidence": 0.9}, calls=calls)
     classify_email(EMAIL, client)
     sent = calls[0]
-    assert sent["model"] == "meta-llama/llama-4-scout-17b-16e-instruct"
+    assert sent["model"] == "meta-llama/llama-4-scout"
     assert sent["temperature"] == 0
     assert sent["response_format"] == {"type": "json_object"}
     assert "<email_body>" in sent["messages"][1]["content"]
 
 
 def test_providers_switch_by_name():
-    c = LLMClient("k", provider="openrouter")
-    assert c.base_url == "https://openrouter.ai/api/v1" and c.model == "meta-llama/llama-4-scout"
+    c = LLMClient("k", provider="together")
+    assert c.base_url == "https://api.together.xyz/v1" and "Llama-4-Scout" in c.model
     with pytest.raises(ValueError):
         LLMClient("k", provider="nope")
 

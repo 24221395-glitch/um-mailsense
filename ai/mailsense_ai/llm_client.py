@@ -1,4 +1,4 @@
-"""Talks to Llama 4 Scout through any OpenAI-compatible chat API (Groq, OpenRouter, Together).
+"""Talks to Llama 4 Scout through any OpenAI-compatible chat API (OpenRouter, Together, Groq).
 
 Cost control (W3-AI-04):
 - callers send each email once and trim long bodies (see classifier/extractor)
@@ -19,9 +19,11 @@ import httpx
 log = logging.getLogger(__name__)
 
 PROVIDERS = {
-    "groq": ("https://api.groq.com/openai/v1", "meta-llama/llama-4-scout-17b-16e-instruct"),
+    # Llama 4 Scout (the default). Groq stopped serving Llama 4 in 2026.
     "openrouter": ("https://openrouter.ai/api/v1", "meta-llama/llama-4-scout"),
     "together": ("https://api.together.xyz/v1", "meta-llama/Llama-4-Scout-17B-16E-Instruct"),
+    # Free fallback for local testing only (not Llama).
+    "groq": ("https://api.groq.com/openai/v1", "openai/gpt-oss-20b"),
 }
 
 
@@ -49,7 +51,7 @@ class LLMClient:
     def __init__(
         self,
         api_key: str,
-        provider: str = "groq",
+        provider: str = "openrouter",
         model: str | None = None,
         base_url: str | None = None,
         daily_token_limit: int = 0,  # 0 = no limit
@@ -69,7 +71,10 @@ class LLMClient:
         self._http = httpx.Client(
             timeout=timeout,
             transport=transport,
-            headers={"Authorization": f"Bearer {api_key}"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "X-Title": "UM MailSense",  # shown on the OpenRouter usage page
+            },
         )
 
     # --- budget --------------------------------------------------------------------------

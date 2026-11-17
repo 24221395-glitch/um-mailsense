@@ -38,6 +38,8 @@ def load_env_file(path: Path) -> None:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles default to cp1252
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", nargs="?", default=str(HERE / "labelled_emails.jsonl"))
     parser.add_argument("--prompt", default="classify_v1")
@@ -51,7 +53,7 @@ def main() -> int:
         return 1
     client = LLMClient(
         api_key=os.environ["LLM_API_KEY"],
-        provider=os.environ.get("LLM_PROVIDER", "groq"),
+        provider=os.environ.get("LLM_PROVIDER", "openrouter"),
         model=os.environ.get("LLM_MODEL") or None,
         base_url=os.environ.get("LLM_BASE_URL") or None,
     )
