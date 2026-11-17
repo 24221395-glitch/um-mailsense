@@ -41,7 +41,7 @@ backend/*.db
 # Model weights (never commit)
 *.safetensors
 *.gguf
-models/
+/models/
 .neon
 .vercel
 .env*
