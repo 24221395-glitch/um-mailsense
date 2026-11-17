@@ -27,6 +27,4 @@ class CVProfile(Base):
     summary: Mapped[str] = mapped_column(String(300), default="")
     source: Mapped[str] = mapped_column(String(20), default="manual")  # cv | manual
     cv_filename: Mapped[str | None] = mapped_column(String(255))
-    updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime, default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)

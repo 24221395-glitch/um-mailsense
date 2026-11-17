@@ -4,11 +4,13 @@ import AdBoardPage from './pages/AdBoardPage'
 import AdminPage from './pages/AdminPage'
 import CalendarPage from './pages/CalendarPage'
 import EmailDetailPage from './pages/EmailDetailPage'
+import HomePage from './pages/HomePage'
 import InboxPage from './pages/InboxPage'
 import LoginPage from './pages/LoginPage'
 import OrganisationPage from './pages/OrganisationPage'
 import ProfilePage from './pages/ProfilePage'
 import SegmentPage from './pages/SegmentPage'
+import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
   return (
@@ -17,6 +19,7 @@ export default function App() {
         <Route path="/" element={<LoginPage />} />
         {/* signed-in pages share the sidebar layout */}
         <Route element={<AppShell />}>
+          <Route path="/home" element={<HomePage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/emails/:id" element={<EmailDetailPage />} />
           <Route path="/segments" element={<SegmentPage />} />
@@ -25,6 +28,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/organisation" element={<OrganisationPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

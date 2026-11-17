@@ -118,10 +118,7 @@ function OrgForm({
           {error}
         </p>
       )}
-      <button
-        disabled={busy}
-        className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent disabled:opacity-50"
-      >
+      <button disabled={busy} className="btn-primary w-full">
         {busy ? 'Sending…' : submitLabel}
       </button>
     </form>
@@ -286,17 +283,10 @@ function AdForm({
         </p>
       )}
       <div className="flex gap-2">
-        <button
-          disabled={busy}
-          className="flex-1 rounded-xl bg-accent px-4 py-2.5 font-semibold text-on-accent disabled:opacity-50"
-        >
+        <button disabled={busy} className="btn-primary flex-1">
           {busy ? 'Saving…' : 'Publish'}
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-xl border border-line px-4 py-2.5 text-sm text-muted"
-        >
+        <button type="button" onClick={onCancel} className="btn-ghost py-2.5 text-sm">
           Cancel
         </button>
       </div>
@@ -420,11 +410,7 @@ export default function OrganisationPage() {
               onCancel={() => setEditing(null)}
             />
           ) : (
-            <button
-              type="button"
-              onClick={() => setEditing('new')}
-              className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent"
-            >
+            <button type="button" onClick={() => setEditing('new')} className="btn-primary w-full">
               + New post
             </button>
           )}

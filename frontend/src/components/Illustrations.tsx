@@ -1,155 +1,89 @@
 // Theme illustrations drawn as SVG so they stay sharp and work in light and dark themes.
 
-/** The MailSense robot: orange, smiling visor, "UM" on the chest, holding an envelope. */
+/** The MailSense robot: white with a dark visor, glowing blue eyes and purple headphones. */
 export function Mascot({ className = '' }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 340 360"
-      role="img"
-      aria-label="MailSense robot holding an email"
-      className={className}
-    >
+    <svg viewBox="0 0 320 340" role="img" aria-label="MailSense robot" className={className}>
       <defs>
-        <linearGradient id="ms-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffb44d" />
-          <stop offset="1" stopColor="#e4730c" />
+        <linearGradient id="rb-shell" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="1" stopColor="#e6e0ff" />
         </linearGradient>
-        <linearGradient id="ms-dark" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d06a0b" />
-          <stop offset="1" stopColor="#9c4c06" />
+        <linearGradient id="rb-purple" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#8f74ff" />
+          <stop offset="1" stopColor="#5b3ff8" />
         </linearGradient>
-        <radialGradient id="ms-glow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#f7931e" stopOpacity="0.45" />
-          <stop offset="1" stopColor="#f7931e" stopOpacity="0" />
+        <radialGradient id="rb-visor" cx="0.5" cy="0.35" r="0.7">
+          <stop offset="0" stopColor="#2a2470" />
+          <stop offset="1" stopColor="#100c33" />
         </radialGradient>
-        <filter id="ms-soft" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="6" />
+        <filter id="rb-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" />
+        </filter>
+        <filter id="rb-shadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="10" stdDeviation="12" floodColor="#5b3ff8" floodOpacity="0.22" />
         </filter>
       </defs>
 
-      {/* glow and orbit ring */}
-      <ellipse cx="170" cy="200" rx="160" ry="150" fill="url(#ms-glow)" />
-      <ellipse
-        cx="170"
-        cy="318"
-        rx="160"
-        ry="30"
-        fill="none"
-        stroke="#f7931e"
-        strokeOpacity="0.55"
-        strokeWidth="3"
-        filter="url(#ms-soft)"
-      />
-      <ellipse
-        cx="170"
-        cy="318"
-        rx="160"
-        ry="30"
-        fill="none"
-        stroke="#ffb547"
-        strokeOpacity="0.5"
-        strokeWidth="1.5"
-      />
-
-      {/* antenna */}
-      <rect x="164" y="24" width="8" height="40" rx="4" fill="url(#ms-dark)" />
-      <circle cx="168" cy="22" r="14" fill="url(#ms-body)" />
-      <circle cx="163" cy="17" r="4" fill="#fff" fillOpacity="0.55" />
-
-      {/* left arm (resting) */}
-      <ellipse
-        cx="106"
-        cy="262"
-        rx="20"
-        ry="34"
-        transform="rotate(20 106 262)"
-        fill="url(#ms-dark)"
-      />
-
-      {/* body */}
-      <rect x="110" y="214" width="118" height="100" rx="44" fill="url(#ms-body)" />
-      <text
-        x="169"
-        y="278"
-        textAnchor="middle"
-        fontFamily="Poppins, sans-serif"
-        fontSize="30"
-        fontWeight="700"
-        fill="#b85a07"
-        opacity="0.85"
-      >
-        UM
-      </text>
-
-      {/* right arm (raised, holding the email) */}
-      <ellipse
-        cx="234"
-        cy="238"
-        rx="18"
-        ry="32"
-        transform="rotate(-35 234 238)"
-        fill="url(#ms-dark)"
-      />
-
-      {/* head */}
-      <circle cx="78" cy="148" r="26" fill="url(#ms-dark)" />
-      <circle cx="262" cy="148" r="26" fill="url(#ms-dark)" />
-      <rect x="72" y="60" width="196" height="166" rx="83" fill="url(#ms-body)" />
-      <ellipse cx="128" cy="92" rx="34" ry="14" fill="#fff" fillOpacity="0.25" />
-      {/* visor + smiling eyes */}
-      <rect x="96" y="104" width="148" height="92" rx="46" fill="#1a120b" />
-      <path
-        d="M128 158q16-26 32 0M180 158q16-26 32 0"
-        fill="none"
-        stroke="#fff4e3"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-
-      {/* envelope card */}
-      <g transform="rotate(-6 268 210)">
-        <rect
-          x="226"
-          y="176"
-          width="88"
-          height="68"
-          rx="12"
-          fill="#2a1a0e"
-          stroke="#f7931e"
-          strokeWidth="3"
+      <g filter="url(#rb-shadow)">
+        {/* body */}
+        <rect x="102" y="214" width="116" height="96" rx="44" fill="url(#rb-shell)" />
+        <path d="M160 238l18 7v13c0 12-8 21-18 25-10-4-18-13-18-25v-13z" fill="url(#rb-purple)" />
+        <text
+          x="160"
+          y="268"
+          textAnchor="middle"
+          fontFamily="Poppins, sans-serif"
+          fontSize="13"
+          fontWeight="700"
+          fill="#ffd65c"
+        >
+          UM
+        </text>
+        {/* arms */}
+        <ellipse
+          cx="96"
+          cy="250"
+          rx="16"
+          ry="30"
+          transform="rotate(18 96 250)"
+          fill="url(#rb-shell)"
         />
-        <rect
-          x="226"
-          y="176"
-          width="88"
-          height="68"
-          rx="12"
-          fill="none"
-          stroke="#f7931e"
-          strokeOpacity="0.6"
-          strokeWidth="8"
-          filter="url(#ms-soft)"
+        <ellipse
+          cx="232"
+          cy="228"
+          rx="16"
+          ry="30"
+          transform="rotate(-40 232 228)"
+          fill="url(#rb-shell)"
         />
-        <rect
-          x="244"
-          y="192"
-          width="52"
-          height="36"
-          rx="4"
+        <circle cx="248" cy="204" r="14" fill="url(#rb-shell)" />
+
+        {/* headphones */}
+        <rect x="46" y="112" width="34" height="62" rx="17" fill="url(#rb-purple)" />
+        <rect x="240" y="112" width="34" height="62" rx="17" fill="url(#rb-purple)" />
+        {/* head */}
+        <rect x="62" y="48" width="196" height="172" rx="86" fill="url(#rb-shell)" />
+        <ellipse cx="120" cy="78" rx="36" ry="13" fill="#fff" />
+        {/* visor + eyes */}
+        <rect x="88" y="96" width="144" height="96" rx="48" fill="url(#rb-visor)" />
+        <path
+          d="M122 152q16-24 32 0M168 152q16-24 32 0"
           fill="none"
-          stroke="#ffb547"
-          strokeWidth="3.5"
+          stroke="#60a5fa"
+          strokeWidth="11"
+          strokeLinecap="round"
+          filter="url(#rb-glow)"
+          opacity="0.8"
         />
         <path
-          d="m246 195 24 17 24-17"
+          d="M122 152q16-24 32 0M168 152q16-24 32 0"
           fill="none"
-          stroke="#ffb547"
-          strokeWidth="3.5"
-          strokeLinejoin="round"
+          stroke="#bfe0ff"
+          strokeWidth="6"
+          strokeLinecap="round"
         />
       </g>
-      {/* hand over the card */}
-      <circle cx="232" cy="222" r="15" fill="url(#ms-body)" />
     </svg>
   )
 }

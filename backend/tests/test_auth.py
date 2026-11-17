@@ -75,7 +75,7 @@ def test_google_callback_signs_in_and_syncs(client, db, fake_inbox, monkeypatch)
     resp = client.get(f"/api/v1/auth/google/callback?code=abc&state={state}")
 
     assert resp.status_code == 302
-    assert resp.headers["location"] == "http://localhost:5173/inbox"
+    assert resp.headers["location"] == "http://localhost:5173/home"
     me = client.get("/api/v1/auth/me").json()
     assert me["email"] == "me@gmail.com"
     assert me["accounts"][0]["provider"] == "google"
@@ -154,7 +154,7 @@ def test_microsoft_sign_in(client, monkeypatch, fake_inbox):
     monkeypatch.setattr(msal_auth, "_app", lambda: FakeMsal(_ms_success()))
     assert client.get("/api/v1/auth/microsoft/login").status_code == 302
     resp = client.get("/api/v1/auth/microsoft/callback?code=c&state=s1")
-    assert resp.headers["location"].endswith("/inbox")
+    assert resp.headers["location"].endswith("/home")
     me = client.get("/api/v1/auth/me").json()
     assert me["email"] == "24221395@siswa.um.edu.my"
     assert me["accounts"][0]["provider"] == "microsoft"

@@ -173,6 +173,76 @@ export const UploadIcon = (p: IconProps) => (
   </Icon>
 )
 
+export const KeyShieldIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3 5 6v5c0 4.5 3 8.5 7 10 4-1.5 7-5.5 7-10V6z" />
+    <circle cx="12" cy="11" r="2" />
+    <path d="M12 13v3" />
+  </Icon>
+)
+export const HomeIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m3 11 9-7 9 7" />
+    <path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+  </Icon>
+)
+export const BellIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" />
+    <path d="M10 20a2 2 0 0 0 4 0" />
+  </Icon>
+)
+export const SettingsIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z" />
+  </Icon>
+)
+export const BookmarkIcon = (p: IconProps & { filled?: boolean }) => {
+  const { filled, ...rest } = p
+  return (
+    <Icon {...rest}>
+      <path d="M6 3h12v18l-6-4-6 4z" fill={filled ? 'currentColor' : 'none'} />
+    </Icon>
+  )
+}
+export const FilterIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 5h16l-6 7v6l-4 2v-8z" />
+  </Icon>
+)
+export const SearchIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m20 20-4.2-4.2" />
+  </Icon>
+)
+export const CheckIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Icon>
+)
+export const ArrowRightIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Icon>
+)
+export const ArrowLeftIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M19 12H5M11 18l-6-6 6-6" />
+  </Icon>
+)
+export const PlusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Icon>
+)
+export const ExternalIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+  </Icon>
+)
+
 /** Microsoft four-square logo (Sign in with Siswamail). */
 export const MicrosoftLogo = ({ className = 'h-4 w-4' }: { className?: string }) => (
   <svg viewBox="0 0 21 21" aria-hidden="true" className={className}>
@@ -204,15 +274,38 @@ export const GoogleLogo = ({ className = 'h-4 w-4' }: { className?: string }) =>
   </svg>
 )
 
-/** Rounded-square envelope logo from the theme. */
-export function Logo({ className = '' }: { className?: string }) {
+/** Purple envelope logo from the theme. light=true for use on the dark sidebar. */
+export function Logo({ className = '', light = false }: { className?: string; light?: boolean }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-accent text-accent">
-        <MailIcon className="h-5 w-5" />
-      </span>
-      <span className="text-xl font-semibold tracking-tight text-ink">
-        UM <span className="text-accent">MailSense</span>
+      <svg viewBox="0 0 40 32" aria-hidden="true" className="h-8 w-10">
+        <defs>
+          <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#7c5cff" />
+            <stop offset="1" stopColor="#5b3ff8" />
+          </linearGradient>
+        </defs>
+        <rect
+          x="2"
+          y="3"
+          width="36"
+          height="26"
+          rx="5"
+          fill="none"
+          stroke={light ? '#fff' : 'url(#logo-g)'}
+          strokeWidth="3.4"
+        />
+        <path
+          d="m4 6 16 12L36 6"
+          fill="none"
+          stroke={light ? '#fff' : 'url(#logo-g)'}
+          strokeWidth="3.4"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className={`text-xl font-semibold tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
+        UM MailSense
       </span>
     </span>
   )
@@ -226,5 +319,6 @@ export const SEGMENT_ICONS: Record<string, (p: IconProps) => ReactNode> = {
   EVENT: CalendarIcon,
   SCHOLARSHIP_CAREER: GradCapIcon,
   CLUB: UsersIcon,
+  SECURITY: KeyShieldIcon,
   NOT_FOR_ME: BanIcon,
 }

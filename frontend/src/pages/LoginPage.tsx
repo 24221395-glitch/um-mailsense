@@ -2,29 +2,25 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getMe, getProviders, signIn, signInDemo } from '../api/auth'
 import {
-  BankIcon,
   CalendarIcon,
+  CheckIcon,
   FileIcon,
   GoogleLogo,
-  InboxIcon,
-  Logo,
+  KeyShieldIcon,
   LockIcon,
+  Logo,
   MailIcon,
-  SEGMENT_ICONS,
+  MegaphoneIcon,
   ShieldIcon,
   SparkleIcon,
-  StarIcon,
   TargetIcon,
   TrophyIcon,
   UsersIcon,
 } from '../components/icons'
-import { Campus, Mascot } from '../components/Illustrations'
-import ThemeToggle from '../components/ThemeToggle'
+import { Mascot } from '../components/Illustrations'
 import type { Providers } from '../types/api'
 
 const ERROR_MESSAGES: Record<string, string> = {
-  admin_approval_required:
-    'Your university has not approved MailSense for Siswamail yet. Please try again later, or sign in with Google for now.',
   access_denied:
     'Sign-in was cancelled. MailSense needs read-only access to your inbox to sort it.',
   gmail_permission_missing:
@@ -40,51 +36,33 @@ const ERROR_MESSAGES: Record<string, string> = {
 const YEAR = new Date().getFullYear()
 
 const NAV = [
-  ['Home', '#home'],
   ['Features', '#features'],
   ['How It Works', '#how'],
   ['For Organisations', '#organisations'],
-  ['About', '#about'],
+  ['Security', '#security'],
   ['FAQ', '#faq'],
 ]
-
-const PREVIEW_TILES: [string, string, number][] = [
-  ['UM_NOTICE', 'UM Notice', 12],
-  ['HACKATHON', 'Hackathon', 5],
-  ['RESEARCH', 'Research', 3],
-  ['EVENT', 'Events', 8],
-  ['SCHOLARSHIP_CAREER', 'Scholarships', 2],
-  ['CLUB', 'Club & Community', 6],
-]
-
-const PREVIEW_MENU = [
-  [InboxIcon, 'Inbox'],
-  [StarIcon, 'For You'],
-  [TrophyIcon, 'Opportunities'],
-  [CalendarIcon, 'Calendar'],
-  [FileIcon, 'My CV'],
-] as const
 
 const FEATURES = [
   [
     MailIcon,
     'AI Email Organisation',
-    'Automatically categorise and summarise your Siswamail emails.',
+    'Every Siswamail email sorted into clear segments automatically.',
   ],
   [
     TargetIcon,
     'Personalised Opportunities',
-    'Get relevant hackathons, research, scholarships and events for you.',
+    'Hackathons, research, scholarships and events picked for you.',
   ],
   [
     FileIcon,
     'CV-Based Recommendation',
-    'Upload your CV and receive opportunities that match your skills and interests.',
+    'Upload your CV and see what matches your skills and interests.',
   ],
   [
     UsersIcon,
     'UM Community Board',
-    'Explore programmes, calls and announcements from UM clubs and organisations.',
+    'Programmes and calls from verified UM clubs and organisations.',
   ],
 ] as const
 
@@ -103,6 +81,29 @@ const STEPS = [
   ],
 ]
 
+const SECURITY_POINTS = [
+  [
+    LockIcon,
+    'Read-only access',
+    'MailSense can only read your inbox. It can never send, delete or change an email.',
+  ],
+  [
+    ShieldIcon,
+    'Encrypted storage',
+    'Email content and sign-in tokens are encrypted in our database. Your password is never seen.',
+  ],
+  [
+    KeyShieldIcon,
+    'PDPA compliant',
+    'Your data is used only to sort and recommend — never for advertising or sold to anyone.',
+  ],
+  [
+    CheckIcon,
+    'You stay in control',
+    'Disconnect or delete your account at any time and all your data is removed.',
+  ],
+] as const
+
 const FAQS = [
   [
     'Can MailSense send or delete my emails?',
@@ -117,16 +118,15 @@ const FAQS = [
     'Only you. Email content is encrypted in our database and is used only to sort and recommend, never for advertising.',
   ],
   [
-    'Can I use it without a Siswamail account?',
-    'Yes, any Google (Gmail) account can sign in. Use your Siswamail account to get your UM notices sorted.',
+    'Which account do I sign in with?',
+    'Your Siswamail account (@siswa.um.edu.my). MailSense uses Google sign-in, so your password stays with Google.',
   ],
   [
     'How do I stop using it?',
-    'Disconnect your mailbox or delete your account from your profile. All your data is removed.',
+    'Open Settings and delete your account. Your emails, profile and sign-in tokens are removed.',
   ],
 ]
 
-/** Siswamail is Google Workspace, so "Sign in with Siswamail" uses Google sign-in. */
 function SignInButton({
   next,
   ready,
@@ -144,70 +144,93 @@ function SignInButton({
       onClick={() => (ready ? signIn('google', next) : onNotReady())}
       className={`btn-primary ${className}`}
     >
-      <GoogleLogo />
+      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white">
+        <GoogleLogo className="h-4 w-4" />
+      </span>
       Sign in with Siswamail
     </button>
   )
 }
 
-function InboxPreview() {
+function FloatCard({
+  Icon,
+  color,
+  title,
+  sub,
+  className = '',
+}: {
+  Icon: typeof TrophyIcon
+  color: string
+  title: string
+  sub: string
+  className?: string
+}) {
   return (
-    <div className="card overflow-hidden bg-surface/90 backdrop-blur [transform:perspective(1400px)_rotateY(-10deg)_rotateX(3deg)]">
-      <div className="flex gap-1.5 px-4 py-3">
-        <span className="h-3 w-3 rounded-full bg-[#f2683a]" />
-        <span className="h-3 w-3 rounded-full bg-accent-2" />
-        <span className="h-3 w-3 rounded-full bg-faint" />
-      </div>
-      <div className="flex">
-        <aside className="hidden w-40 shrink-0 space-y-1 border-r border-line p-3 text-sm sm:block lg:hidden wide:block">
-          <p className="flex items-center gap-1.5 px-2 py-2 font-medium text-ink">
-            <MailIcon className="h-3.5 w-3.5 text-accent" /> UM{' '}
-            <span className="text-accent">MailSense</span>
-          </p>
-          {PREVIEW_MENU.map(([Ico, label], i) => (
-            <p
-              key={label}
-              className={`flex items-center gap-2 rounded-lg px-2 py-2 ${
-                i === 0 ? 'bg-accent font-medium text-on-accent' : 'text-muted'
-              }`}
-            >
-              <Ico className="h-3.5 w-3.5" /> {label}
-            </p>
-          ))}
-        </aside>
-        <div className="flex-1 p-4">
-          <p className="mb-4 flex items-center gap-1.5 text-base font-medium text-ink">
-            Your Inbox, Organised by AI <SparkleIcon className="h-3.5 w-3.5 text-accent" />
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            {PREVIEW_TILES.map(([code, label, n]) => {
-              const Ico = SEGMENT_ICONS[code]
-              return (
-                <div
-                  key={code}
-                  className="rounded-xl border border-line bg-surface-2 px-2 py-4 text-center"
-                >
-                  <Ico className="mx-auto h-8 w-8 text-accent" />
-                  <p className="mt-2 text-sm font-medium leading-tight text-ink">{label}</p>
-                  <p className="mt-0.5 text-xs text-muted">{n} new</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+    <div className={`card absolute flex items-center gap-3 px-4 py-3 backdrop-blur ${className}`}>
+      <span
+        className="flex h-11 w-11 items-center justify-center rounded-xl"
+        style={{ background: `${color}1f`, color }}
+      >
+        <Icon className="h-6 w-6" />
+      </span>
+      <div>
+        <p className="text-sm font-semibold text-ink">{title}</p>
+        <p className="text-xs font-medium" style={{ color }}>
+          {sub}
+        </p>
       </div>
     </div>
   )
 }
 
-function SectionTitle({ before, accent, id }: { before: string; accent: string; id?: string }) {
+function HeroVisual() {
   return (
-    <div id={id} className="mb-8 flex scroll-mt-24 items-center justify-center gap-6">
-      <span className="hidden h-px w-24 bg-line-strong sm:block" />
-      <h2 className="text-center text-3xl font-semibold text-ink sm:text-4xl">
-        {before} <span className="text-gradient">{accent}</span>
-      </h2>
-      <span className="hidden h-px w-24 bg-line-strong sm:block" />
+    <div className="relative mx-auto h-[28rem] w-full max-w-xl" aria-hidden="true">
+      {/* glow + orbit */}
+      <div className="absolute inset-x-6 top-10 bottom-6 rounded-full bg-[radial-gradient(circle,rgba(124,92,255,0.28),transparent_65%)]" />
+      <div className="absolute left-1/2 top-1/2 h-72 w-[30rem] max-w-full -translate-x-1/2 -translate-y-1/3 -rotate-12 rounded-[50%] border-2 border-accent/20" />
+      {/* mail app icon */}
+      <div className="animate-float absolute left-[46%] top-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5aa7ff] to-[#3b6cf6] text-white shadow-lg">
+        <MailIcon className="h-9 w-9" />
+      </div>
+      <Mascot className="absolute -right-2 top-4 w-64 sm:w-80" />
+      <FloatCard
+        Icon={TrophyIcon}
+        color="#7c5cff"
+        title="Hackathon"
+        sub="3 new"
+        className="left-0 top-20"
+      />
+      <FloatCard
+        Icon={MegaphoneIcon}
+        color="#f59e0b"
+        title="UM Notice"
+        sub="2 new"
+        className="left-4 top-44"
+      />
+      <FloatCard
+        Icon={CalendarIcon}
+        color="#a855f7"
+        title="Events"
+        sub="5 new"
+        className="left-24 bottom-6"
+      />
+      <FloatCard
+        Icon={KeyShieldIcon}
+        color="#0ea5a4"
+        title="Security"
+        sub="1 new"
+        className="right-0 bottom-16 hidden sm:flex"
+      />
+    </div>
+  )
+}
+
+function SectionTitle({ eyebrow, title, id }: { eyebrow: string; title: string; id?: string }) {
+  return (
+    <div id={id} className="mb-10 scroll-mt-24 text-center">
+      <p className="eyebrow">{eyebrow}</p>
+      <h2 className="mt-3 text-3xl font-bold text-ink sm:text-4xl">{title}</h2>
     </div>
   )
 }
@@ -215,15 +238,15 @@ function SectionTitle({ before, accent, id }: { before: string; accent: string; 
 export default function LoginPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [providers, setProviders] = useState<Providers>({ microsoft: true, google: true })
+  const [providers, setProviders] = useState<Providers>({ microsoft: false, google: true })
   const error = params.get('error')
   const [notReady, setNotReady] = useState(false)
   const showNotReady = () => setNotReady(true)
 
   useEffect(() => {
-    // Already signed in? Go straight to the inbox.
+    // Already signed in? Go straight to the app.
     getMe()
-      .then(() => navigate('/inbox', { replace: true }))
+      .then(() => navigate('/home', { replace: true }))
       .catch(() => {})
     getProviders()
       .then(setProviders)
@@ -233,47 +256,39 @@ export default function LoginPage() {
   return (
     <div className="overflow-x-hidden">
       {/* header */}
-      <header className="sticky top-0 z-20 border-b border-transparent bg-bg/80 backdrop-blur">
-        <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-4 sm:px-8">
+      <header className="sticky top-0 z-20 border-b border-line bg-surface/80 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-8">
           <Logo />
-          <nav aria-label="Sections" className="hidden items-center gap-1 lg:flex">
-            {NAV.map(([label, href], i) => (
+          <nav aria-label="Sections" className="hidden items-center gap-8 lg:flex">
+            {NAV.map(([label, href]) => (
               <a
                 key={href}
                 href={href}
-                className={`rounded-full px-5 py-2.5 text-sm ${
-                  i === 0 ? 'bg-surface-3 font-medium text-ink' : 'text-ink-2 hover:text-accent'
-                }`}
+                className="text-sm font-medium text-ink-2 hover:text-accent"
               >
                 {label}
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <SignInButton
-              ready={providers.google}
-              onNotReady={showNotReady}
-              className="hidden px-4 py-2.5 text-sm sm:inline-flex"
-            />
-          </div>
+          <SignInButton
+            ready={providers.google}
+            onNotReady={showNotReady}
+            className="hidden px-4 py-2.5 text-sm sm:inline-flex"
+          />
         </div>
       </header>
 
-      <main id="home">
+      <main>
         {/* hero */}
-        <section className="mx-auto grid max-w-[90rem] items-center gap-10 px-4 pb-12 pt-10 sm:px-8 lg:grid-cols-[minmax(0,31rem)_1fr] lg:pt-16 wide:grid-cols-[minmax(0,37rem)_1fr]">
+        <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-12 sm:px-8 lg:grid-cols-2 lg:pt-20">
           <div>
-            <p className="eyebrow flex items-center gap-4">
-              Universiti Malaya <span className="h-px w-8 bg-accent" />
-            </p>
-            <h1 className="mt-5 text-4xl font-semibold leading-[1.15] text-ink sm:text-5xl lg:text-[2.75rem] wide:text-[3.2rem]">
-              Your AI-Powered <br className="hidden sm:block" />
-              Siswamail <span className="text-gradient">Companion</span>
+            <span className="pill">For Universiti Malaya Students</span>
+            <h1 className="mt-6 text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl wide:text-[3.6rem]">
+              Turn Your Siswamail into Opportunities
             </h1>
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-2">
-              Organise your UM emails, discover opportunities, and get personalised recommendations
-              — all in one smart platform.
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2">
+              An AI-powered email organiser that sorts your UM emails, highlights what matters, and
+              recommends opportunities tailored to your skills and interests.
             </p>
 
             {(error || notReady) && (
@@ -283,143 +298,135 @@ export default function LoginPage() {
               >
                 {error
                   ? (ERROR_MESSAGES[error] ?? 'Sign-in failed. Please try again.')
-                  : 'Siswamail sign-in is being set up and will open very soon. Please check back shortly.'}
+                  : ERROR_MESSAGES.signin_unavailable}
               </p>
             )}
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a href="#features" className="btn-ghost">
+              <SignInButton
+                ready={providers.google}
+                onNotReady={showNotReady}
+                className="px-6 py-3.5"
+              />
+              <a href="#features" className="btn-ghost px-6 py-3">
                 Learn More
               </a>
-              <SignInButton ready={providers.google} onNotReady={showNotReady} />
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-              {providers.demo && (
-                <button
-                  type="button"
-                  onClick={signInDemo}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-2"
-                >
-                  <SparkleIcon className="h-4 w-4" /> Try the demo (sample data)
-                </button>
-              )}
-            </div>
+            {providers.demo && (
+              <button type="button" onClick={signInDemo} className="btn-soft mt-4">
+                <SparkleIcon className="h-4 w-4" /> Try the demo (sample data)
+              </button>
+            )}
 
-            <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-ink-2">
-              <li className="flex items-center gap-2">
-                <ShieldIcon className="h-5 w-5 text-accent" /> Secure Google sign-in
-              </li>
-              <li className="hidden h-5 w-px bg-line-strong sm:block" aria-hidden="true" />
-              <li className="flex items-center gap-2">
-                <LockIcon className="h-5 w-5 text-accent" /> PDPA Compliant
-              </li>
-              <li className="hidden h-5 w-px bg-line-strong sm:block" aria-hidden="true" />
-              <li className="flex items-center gap-2">
-                <BankIcon className="h-5 w-5 text-accent" /> UM Approved
-              </li>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-ink-2">
+              {['Secure Google sign-in', 'PDPA Compliant', 'UM Approved'].map((t) => (
+                <li key={t} className="flex items-center gap-1.5">
+                  <CheckIcon className="h-4 w-4 text-accent" strokeWidth={2.6} /> {t}
+                </li>
+              ))}
             </ul>
           </div>
-
-          <div className="relative mx-auto flex w-full max-w-xl items-center lg:max-w-none">
-            <Mascot className="pointer-events-none relative z-10 -mr-14 hidden w-[11rem] shrink-0 translate-y-6 drop-shadow-[0_20px_40px_rgba(247,147,30,0.25)] lg:block wide:-mr-8 wide:w-[15rem] 2xl:w-[17rem]" />
-            <div className="min-w-0 flex-1">
-              <InboxPreview />
-              <Mascot className="mx-auto mt-6 w-48 lg:hidden" />
-            </div>
-          </div>
+          <HeroVisual />
         </section>
 
         {/* features */}
-        <section className="mx-auto max-w-[90rem] px-4 py-16 sm:px-8">
-          <SectionTitle id="features" before="Everything for Your" accent="UM Journey" />
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
+          <SectionTitle id="features" eyebrow="Features" title="Everything for your UM journey" />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(([Ico, title, text]) => (
-              <article key={title} className="card p-6">
-                <span className="flex h-14 w-14 items-center justify-center rounded-xl border border-line bg-surface-2 text-accent">
-                  <Ico className="h-8 w-8" />
+              <article key={title} className="card card-hover p-6">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <Ico className="h-6 w-6" />
                 </span>
                 <h3 className="mt-5 text-lg font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-2">{text}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
               </article>
             ))}
           </div>
         </section>
 
         {/* how it works */}
-        <section className="mx-auto max-w-[90rem] px-4 py-16 sm:px-8">
-          <SectionTitle id="how" before="How It" accent="Works" />
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
+          <SectionTitle id="how" eyebrow="How it works" title="Three steps to a calmer inbox" />
           <ol className="grid gap-5 md:grid-cols-3">
             {STEPS.map(([title, text], i) => (
               <li key={title} className="card p-6">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent font-semibold text-on-accent">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent-2 to-accent font-semibold text-white">
                   {i + 1}
                 </span>
                 <h3 className="mt-4 text-lg font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-2">{text}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
               </li>
             ))}
           </ol>
         </section>
 
         {/* organisations */}
-        <section className="mx-auto max-w-[90rem] px-4 py-16 sm:px-8">
-          <SectionTitle id="organisations" before="For" accent="Organisations" />
-          <div className="card grid items-center gap-6 p-8 md:grid-cols-[1fr_auto]">
-            <div>
-              <h3 className="text-xl font-semibold text-ink">Reach the right students</h3>
-              <p className="mt-2 max-w-2xl text-ink-2">
-                Verified UM clubs, societies and offices can post programmes on the community board.
-                MailSense recommends each post to the students whose skills and interests match.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <SignInButton
-                next="/organisation"
-                ready={providers.google}
-                onNotReady={showNotReady}
-              />
-            </div>
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
+          <SectionTitle
+            id="organisations"
+            eyebrow="For organisations"
+            title="Reach the right students"
+          />
+          <div className="grid items-center gap-6 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-2 to-accent p-8 text-white shadow-xl md:grid-cols-[1fr_auto] md:p-10">
+            <p className="max-w-2xl text-lg leading-relaxed text-white/90">
+              Verified UM clubs, societies and offices can post programmes on the community board.
+              MailSense recommends each post to the students whose skills and interests match.
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                providers.google ? signIn('google', '/organisation') : showNotReady()
+              }
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-accent shadow-lg hover:-translate-y-0.5 hover:shadow-xl"
+            >
+              Register your club
+            </button>
           </div>
         </section>
 
-        {/* about */}
-        <section className="mx-auto max-w-[90rem] px-4 py-16 sm:px-8">
-          <SectionTitle id="about" before="About" accent="MailSense" />
-          <div className="card mx-auto max-w-3xl p-8 text-center text-ink-2">
-            <p className="leading-relaxed">
-              UM MailSense is a student project at Universiti Malaya. Students told us important
-              notices, deadlines and opportunities get buried in a busy Siswamail inbox. MailSense
-              uses AI to sort every email, surface what matters to you, and bring UM clubs and
-              students together in one place.
-            </p>
-            <p className="mt-4 text-sm text-muted">
-              Read-only access · Encrypted storage · Your data deleted on request
-            </p>
+        {/* security */}
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
+          <SectionTitle id="security" eyebrow="Security & privacy" title="Your inbox stays yours" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {SECURITY_POINTS.map(([Ico, title, text]) => (
+              <article key={title} className="card p-6">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-success-soft text-success">
+                  <Ico className="h-6 w-6" />
+                </span>
+                <h3 className="mt-5 text-lg font-semibold text-ink">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
+              </article>
+            ))}
           </div>
         </section>
 
         {/* faq */}
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-8">
-          <SectionTitle id="faq" before="Frequently Asked" accent="Questions" />
+          <SectionTitle id="faq" eyebrow="FAQ" title="Frequently asked questions" />
           <div className="space-y-3">
             {FAQS.map(([q, a]) => (
               <details key={q} className="card group p-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-ink">
+                <summary className="flex list-none items-center justify-between gap-4 font-semibold text-ink">
                   {q}
-                  <span className="text-accent transition group-open:rotate-45">+</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent transition group-open:rotate-45">
+                    +
+                  </span>
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-ink-2">{a}</p>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{a}</p>
               </details>
             ))}
           </div>
         </section>
       </main>
 
-      <footer className="mt-8">
-        <Campus className="mx-auto block w-full max-w-6xl" />
-        <p className="border-t border-line py-6 text-center text-xs text-faint">
-          © {YEAR} UM MailSense · A Universiti Malaya student project
-        </p>
+      <footer className="border-t border-line bg-surface/60">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-8">
+          <Logo />
+          <p className="text-xs text-faint">
+            © {YEAR} UM MailSense · A Universiti Malaya student project
+          </p>
+        </div>
       </footer>
     </div>
   )

@@ -1,3 +1,6 @@
+import { segmentColor } from '../segments'
+import { MailIcon, SEGMENT_ICONS } from './icons'
+
 type EmailCardProps = {
   id: number
   senderName: string
@@ -5,6 +8,7 @@ type EmailCardProps = {
   snippet: string
   receivedAt: string
   isRead: boolean
+  segmentCode?: string | null
   segmentLabel: string
   deadlineLabel?: string
   recommendation?: 'for_you' | 'not_for_you' | null
@@ -20,6 +24,7 @@ export default function EmailCard({
   snippet,
   receivedAt,
   isRead,
+  segmentCode = null,
   segmentLabel,
   deadlineLabel,
   recommendation,
@@ -27,23 +32,35 @@ export default function EmailCard({
   isOfficial = false,
   onClick,
 }: EmailCardProps) {
-  const time = new Date(receivedAt).toLocaleTimeString([], {
+  const time = new Date(receivedAt).toLocaleString([], {
+    day: 'numeric',
+    month: 'short',
     hour: '2-digit',
     minute: '2-digit',
   })
+  const { fg, bg } = segmentColor(segmentCode)
+  const Ico = SEGMENT_ICONS[segmentCode ?? ''] ?? MailIcon
 
   return (
     <button
       type="button"
       onClick={() => onClick?.(id)}
-      className={`w-full rounded-2xl border bg-surface p-4 text-left shadow-none hover:border-line-strong ${
-        isOfficial ? 'border-line-strong border-l-4 border-l-accent' : 'border-line'
-      }`}
+      className={`card card-hover w-full p-4 text-left ${isOfficial ? 'border-l-4' : ''}`}
+      style={isOfficial ? { borderLeftColor: fg } : undefined}
     >
-      <div className="flex items-start gap-3">
-        {!isRead && (
-          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" aria-label="Unread" />
-        )}
+      <div className="flex items-start gap-4">
+        <span
+          className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+          style={{ background: bg, color: fg }}
+        >
+          <Ico className="h-5 w-5" />
+          {!isRead && (
+            <span
+              className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-accent ring-2 ring-surface"
+              aria-label="Unread"
+            />
+          )}
+        </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span
@@ -51,28 +68,29 @@ export default function EmailCard({
             >
               {senderName}
             </span>
-            <time className="shrink-0 text-xs text-muted">{time}</time>
+            <time className="shrink-0 text-xs text-faint">{time}</time>
           </div>
-          <p className="mt-1 truncate text-sm font-semibold text-ink">{subject}</p>
-          <p className="mt-1 line-clamp-2 text-xs text-muted">{snippet}</p>
+          <p className={`mt-0.5 truncate ${isRead ? 'font-medium' : 'font-semibold'} text-ink`}>
+            {subject}
+          </p>
+          <p className="mt-1 line-clamp-2 text-sm text-muted">{snippet}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                isOfficial ? 'bg-warn-soft text-warn' : 'bg-accent-soft text-accent'
-              }`}
+              className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+              style={{ background: bg, color: fg }}
             >
               {segmentLabel}
             </span>
             {recommendation === 'for_you' && (
               <span
                 title={recommendationReason}
-                className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success"
+                className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-semibold text-success"
               >
-                For you
+                ★ For you
               </span>
             )}
             {deadlineLabel && (
-              <span className="ml-auto rounded-full bg-warn-soft px-2.5 py-0.5 text-xs font-medium text-warn">
+              <span className="ml-auto rounded-full bg-danger-soft px-2.5 py-0.5 text-xs font-semibold text-danger">
                 {deadlineLabel}
               </span>
             )}

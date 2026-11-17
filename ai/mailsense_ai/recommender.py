@@ -1,6 +1,7 @@
 """recommend(profile, items) -> list[Recommendation]   (W3-AI-02, FR-23/24/25)
 
 - UM_NOTICE items are always "for you" (official notices matter to every student).
+- SECURITY items are always "for you" (they concern the student's own accounts).
 - NOT_FOR_ME items are always "not for you".
 - Everything else is scored by the LLM in batches (cheap: ~1 call per 15 items).
 - If the LLM fails, a keyword match against skills/interests/field is used instead.
@@ -102,6 +103,8 @@ def recommend(
     for item in items:
         if item.segment is Segment.UM_NOTICE:
             results[item.id] = _rec(item.id, 0.9, "Official UM notice")
+        elif item.segment is Segment.SECURITY:
+            results[item.id] = _rec(item.id, 0.85, "About your account security")
         elif item.segment is Segment.NOT_FOR_ME:
             results[item.id] = _rec(item.id, 0.05, "Not relevant")
         else:

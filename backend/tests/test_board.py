@@ -289,7 +289,7 @@ def test_deleting_owner_account_removes_org_and_posts(client, people, db):
 
 @pytest.mark.parametrize(
     "next_, expected",
-    [("/organisation", "/organisation"), ("https://evil.example", "/inbox"), ("//evil", "/inbox")],
+    [("/organisation", "/organisation"), ("https://evil.example", "/home"), ("//evil", "/home")],
 )
 def test_login_next_redirect_is_safe(client, monkeypatch, fake_inbox, next_, expected):
     import httpx

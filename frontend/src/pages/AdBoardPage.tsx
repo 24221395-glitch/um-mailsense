@@ -2,14 +2,24 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAd, listAds, reportAd, saveAd, scoreAds, unsaveAd } from '../api/ads'
 import { ApiError } from '../api/client'
-import AdCard from '../components/AdCard'
+import {
+  BookmarkIcon,
+  FilterIcon,
+  SEGMENT_ICONS,
+  SearchIcon,
+  TrophyIcon,
+} from '../components/icons'
 import SegmentTabs from '../components/SegmentTabs'
 import { AD_CATEGORIES, FACULTIES } from '../faculties'
-import { segmentLabel } from '../segments'
+import { segmentColor, segmentLabel } from '../segments'
 import type { Ad } from '../types/api'
 
 const FOR_YOU = 'FOR_YOU'
 const SAVED = 'SAVED'
+
+function shortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 function formatDate(iso: string | null): string | null {
   if (!iso) return null
@@ -50,11 +60,11 @@ function AdDetail({
       role="dialog"
       aria-modal="true"
       aria-label={ad.title}
-      className="fixed inset-0 z-10 flex items-end justify-center bg-black/60 sm:items-center"
+      className="fixed inset-0 z-30 flex items-end justify-center bg-[#17123a]/50 backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-surface p-5 sm:rounded-2xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface p-6 shadow-2xl sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
@@ -110,7 +120,7 @@ function AdDetail({
               href={ad.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-center text-sm font-semibold text-on-accent"
+              className="btn-primary flex-1"
             >
               Register / more info
             </a>
@@ -118,9 +128,10 @@ function AdDetail({
           <button
             type="button"
             onClick={() => onToggleSave(ad)}
-            className="rounded-xl border border-line px-4 py-2.5 text-sm text-ink-2"
+            className="btn-ghost py-2.5 text-sm"
           >
-            {ad.is_saved ? '♥ Saved' : '♡ Save'}
+            <BookmarkIcon className="h-4 w-4" filled={ad.is_saved} />
+            {ad.is_saved ? 'Saved' : 'Save'}
           </button>
         </div>
 
@@ -138,7 +149,7 @@ function AdDetail({
               type="button"
               disabled={reason.trim().length < 3}
               onClick={submitReport}
-              className="rounded-xl bg-danger px-3 py-1.5 text-sm text-on-accent disabled:opacity-50"
+              className="rounded-xl bg-danger px-4 py-2 text-sm font-semibold text-white shadow-md hover:brightness-110 disabled:opacity-50"
             >
               Send report
             </button>
@@ -163,6 +174,7 @@ export default function AdBoardPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('ALL')
   const [faculty, setFaculty] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
   const [q, setQ] = useState('')
   const [ads, setAds] = useState<Ad[]>([])
   const [loading, setLoading] = useState(true)
@@ -228,40 +240,69 @@ export default function AdBoardPage() {
   ]
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
-      <h1 className="text-2xl font-bold text-ink">Community board</h1>
-      <p className="mb-4 text-sm text-muted">Programmes from verified UM clubs and offices.</p>
+    <div className="mx-auto w-full max-w-5xl">
+      <h1 className="text-2xl font-bold text-ink sm:text-3xl">Opportunity Board</h1>
+      <p className="mb-5 mt-1 text-muted">
+        Discover programmes, competitions and events from UM clubs and organisations.
+      </p>
 
-      <div className="mb-3 flex gap-2">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search posts"
-          aria-label="Search posts"
-          className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm"
-        />
-        <select
-          value={faculty}
-          onChange={(e) => setFaculty(e.target.value)}
-          aria-label="Faculty"
-          className="w-36 rounded-xl border border-line bg-surface px-2 py-2 text-sm"
+      <div className="mb-3 flex gap-3">
+        <label className="card flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5">
+          <SearchIcon className="h-5 w-5 text-faint" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search opportunities..."
+            aria-label="Search opportunities"
+            className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none focus-visible:outline-none"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          aria-expanded={showFilters}
+          className={`card flex items-center gap-2 px-4 py-2.5 text-sm font-semibold ${
+            showFilters || faculty
+              ? 'text-accent ring-2 ring-accent'
+              : 'text-ink-2 hover:text-accent'
+          }`}
         >
-          <option value="">All faculties</option>
-          {FACULTIES.map((f) => (
-            <option key={f} value={f}>
-              {f.replace('Faculty of ', '')}
-            </option>
-          ))}
-        </select>
+          <FilterIcon className="h-4 w-4" /> Filters
+        </button>
       </div>
-      <div className="mb-4">
+      {showFilters && (
+        <div className="card mb-3 flex flex-wrap items-center gap-3 p-3">
+          <label htmlFor="faculty" className="text-sm font-medium text-ink-2">
+            Faculty
+          </label>
+          <select
+            id="faculty"
+            value={faculty}
+            onChange={(e) => setFaculty(e.target.value)}
+            className="min-w-0 flex-1 rounded-xl border border-line px-3 py-2 text-sm"
+          >
+            <option value="">All faculties</option>
+            {FACULTIES.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+          {faculty && (
+            <button type="button" onClick={() => setFaculty('')} className="btn-soft">
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+      <div className="mb-5">
         <SegmentTabs tabs={tabs} activeCode={tab} onChange={setTab} />
       </div>
 
       {loading ? (
-        <p className="py-10 text-center text-sm text-faint">Loading posts…</p>
+        <p className="py-10 text-center text-sm text-faint">Loading posts...</p>
       ) : ads.length === 0 ? (
-        <p className="py-10 text-center text-sm text-faint">
+        <p className="card py-10 text-center text-sm text-muted">
           {tab === SAVED
             ? 'You have not saved any posts yet.'
             : tab === FOR_YOU
@@ -269,23 +310,80 @@ export default function AdBoardPage() {
               : 'No posts match.'}
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {ads.map((ad) => (
-            <li key={ad.id}>
-              <AdCard
-                id={ad.id}
-                title={ad.title}
-                organisationName={ad.organisation_name}
-                category={segmentLabel(ad.category)}
-                imageUrl={ad.image_url}
-                eventDate={ad.event_date}
-                isSaved={ad.is_saved}
-                recommendation={ad.recommendation}
-                onToggleSave={() => toggleSave(ad)}
-                onClick={openAd}
-              />
-            </li>
-          ))}
+        <ul className="space-y-3">
+          {ads.map((ad) => {
+            const { fg } = segmentColor(ad.category)
+            const Ico = SEGMENT_ICONS[ad.category] ?? TrophyIcon
+            const when = ad.deadline || ad.event_date
+            return (
+              <li key={ad.id} className="card card-hover flex gap-4 p-4">
+                <button
+                  type="button"
+                  onClick={() => openAd(ad.id)}
+                  className="flex min-w-0 flex-1 gap-4 text-left"
+                >
+                  {ad.image_url ? (
+                    <img
+                      src={ad.image_url}
+                      alt=""
+                      className="h-24 w-24 shrink-0 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <span
+                      className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl text-white"
+                      style={{ background: `linear-gradient(135deg, ${fg}, #5b3ff8)` }}
+                    >
+                      <Ico className="h-10 w-10" />
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-lg font-semibold text-ink">
+                      {ad.title}
+                    </span>
+                    <span className="block truncate text-sm text-ink-2">
+                      {ad.organisation_name}
+                    </span>
+                    <span className="mt-1 line-clamp-2 text-sm text-muted">{ad.description}</span>
+                    <span className="mt-2 flex flex-wrap gap-2">
+                      <span
+                        className="rounded-md px-2 py-0.5 text-xs font-semibold"
+                        style={{ background: `${fg}1a`, color: fg }}
+                      >
+                        {segmentLabel(ad.category)}
+                      </span>
+                      {ad.faculty && (
+                        <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-medium text-ink-2">
+                          {ad.faculty.replace('Faculty of ', '')}
+                        </span>
+                      )}
+                      {ad.recommendation === 'for_you' && (
+                        <span className="rounded-md bg-success-soft px-2 py-0.5 text-xs font-semibold text-success">
+                          For you
+                        </span>
+                      )}
+                    </span>
+                  </span>
+                </button>
+                <div className="flex shrink-0 flex-col items-end justify-between">
+                  {when && (
+                    <div className="text-right">
+                      <p className="text-xs text-faint">{ad.deadline ? 'Deadline' : 'Date'}</p>
+                      <p className="text-sm font-semibold text-ink">{shortDate(when)}</p>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => toggleSave(ad)}
+                    aria-pressed={ad.is_saved}
+                    aria-label={ad.is_saved ? 'Remove bookmark' : 'Bookmark'}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-accent hover:bg-accent-soft"
+                  >
+                    <BookmarkIcon className="h-5 w-5" filled={ad.is_saved} />
+                  </button>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
 

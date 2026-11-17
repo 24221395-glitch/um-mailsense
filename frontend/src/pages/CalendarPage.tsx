@@ -77,7 +77,7 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={enableBrowserReminders}
-            className="mt-3 w-full rounded-xl bg-accent px-4 py-2.5 font-semibold text-on-accent"
+            className="btn-primary mt-3 w-full"
           >
             Turn on browser reminders
           </button>

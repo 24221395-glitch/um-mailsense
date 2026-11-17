@@ -2,8 +2,14 @@ import { Fragment, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { getEmail, updateEmail } from '../api/emails'
-import DeadlineBadge from '../components/DeadlineBadge'
-import { SEGMENT_ORDER, segmentLabel } from '../segments'
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+  ExternalIcon,
+  SparkleIcon,
+} from '../components/icons'
+import { SEGMENT_ORDER, segmentColor, segmentLabel } from '../segments'
 import type { EmailDetail } from '../types/api'
 
 const URL_RE = /(https?:\/\/[^\s<>"')\]]+)/g
@@ -20,7 +26,7 @@ function Linkified({ text }: { text: string }) {
             href={part}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="break-all text-accent underline"
+            className="break-all font-medium text-accent underline"
           >
             {part}
           </a>
@@ -43,8 +49,57 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function openOriginalLabel(link: string): string {
-  return link.includes('mail.google.com') ? 'Open in Gmail' : 'Open in Outlook'
+function initials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter((w) => /^[A-Za-z]/.test(w))
+      .slice(0, 2)
+      .map((w) => w[0]!.toUpperCase())
+      .join('') || '@'
+  )
+}
+
+/** Build a calendar file (.ics) so the deadline/event can go into any calendar app. */
+function downloadIcs(email: EmailDetail) {
+  const when = email.deadline ?? email.event_date
+  if (!when) return
+  const start = new Date(when)
+  const end = new Date(start.getTime() + 60 * 60 * 1000)
+  const fmt = (d: Date) =>
+    d
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}/, '')
+  const esc = (t: string) => t.replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n')
+  const title = `${email.deadline ? 'Deadline: ' : ''}${email.subject}`
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//UM MailSense//EN',
+    'BEGIN:VEVENT',
+    `UID:mailsense-${email.id}-${fmt(start)}@um-mailsense`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${esc(title)}`,
+    `DESCRIPTION:${esc(`From ${email.sender_name}. ${email.registration_link ?? ''}`)}`,
+    ...(email.venue ? [`LOCATION:${esc(email.venue)}`] : []),
+    'BEGIN:VALARM',
+    'TRIGGER:-P1D',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${esc(title)}`,
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ]
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'mailsense-event.ics'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export default function EmailDetailPage() {
@@ -53,7 +108,6 @@ export default function EmailDetailPage() {
   const [email, setEmail] = useState<EmailDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [moving, setMoving] = useState(false)
-  const [now] = useState(() => new Date())
 
   useEffect(() => {
     const emailId = Number(id)
@@ -79,114 +133,127 @@ export default function EmailDetailPage() {
   }
 
   if (error) {
-    return (
-      <div className="mx-auto w-full max-w-3xl">
-        <p className="py-10 text-center text-sm text-muted">{error}</p>
-      </div>
-    )
+    return <p className="card mx-auto max-w-3xl py-10 text-center text-sm text-muted">{error}</p>
   }
   if (!email) return <p className="p-10 text-center text-sm text-faint">Loading…</p>
 
-  const isNotice = email.segment === 'UM_NOTICE'
-  const hasDetails =
-    email.deadline || email.event_date || email.venue || email.organiser || email.registration_link
+  const { fg, bg } = segmentColor(email.segment)
+  const summary = [
+    email.segment_reason && `${segmentLabel(email.segment)}: ${email.segment_reason}.`,
+    email.deadline && `Deadline: ${formatDateTime(email.deadline)}.`,
+    email.event_date && `When: ${formatDateTime(email.event_date)}.`,
+    email.venue && `Where: ${email.venue}.`,
+    email.organiser && `Organised by ${email.organiser}.`,
+    email.recommendation === 'for_you' &&
+      email.recommendation_reason &&
+      `For you: ${email.recommendation_reason}.`,
+  ].filter(Boolean) as string[]
+  const openLink = email.registration_link ?? email.web_link
+  const hasDate = Boolean(email.deadline || email.event_date)
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      <button type="button" onClick={() => navigate(-1)} className="mb-3 text-sm text-accent">
-        ← Back
-      </button>
-
-      <article
-        className={`rounded-2xl border bg-surface p-4 ${
-          isNotice ? 'border-line-strong' : 'border-line'
-        }`}
+    <div className="mx-auto w-full max-w-3xl space-y-5">
+      <Link
+        to="/inbox"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-ink-2 hover:text-accent"
       >
-        {isNotice && (
-          <p className="mb-2 inline-block rounded-full bg-warn-soft px-2.5 py-0.5 text-xs font-semibold text-warn">
-            Official UM notice
-          </p>
-        )}
-        <h1 className="text-lg font-semibold text-ink">{email.subject}</h1>
-        <p className="mt-1 text-sm text-muted">
-          {email.sender_name}
-          {email.sender_email && <span className="text-faint"> &lt;{email.sender_email}&gt;</span>}
-        </p>
-        <p className="text-xs text-faint">{formatDateTime(email.received_at)}</p>
+        <ArrowLeftIcon className="h-4 w-4" /> Back to Inbox
+      </Link>
 
-        {email.recommendation === 'for_you' && email.recommendation_reason && (
-          <p className="mt-3 rounded-lg bg-success-soft px-3 py-2 text-sm text-success">
-            For you: {email.recommendation_reason}
-          </p>
-        )}
-
-        {hasDetails && (
-          <dl className="mt-3 space-y-1.5 rounded-xl bg-surface-2 p-3 text-sm">
-            {email.deadline && (
-              <div className="flex items-center gap-2">
-                <dt className="font-medium text-ink-2">Deadline:</dt>
-                <dd className="flex items-center gap-2 text-muted">
-                  {formatDateTime(email.deadline)}
-                  <DeadlineBadge deadline={email.deadline} now={now} />
-                </dd>
-              </div>
-            )}
-            {email.event_date && (
-              <div>
-                <dt className="inline font-medium text-ink-2">When: </dt>
-                <dd className="inline text-muted">{formatDateTime(email.event_date)}</dd>
-              </div>
-            )}
-            {email.venue && (
-              <div>
-                <dt className="inline font-medium text-ink-2">Where: </dt>
-                <dd className="inline text-muted">{email.venue}</dd>
-              </div>
-            )}
-            {email.organiser && (
-              <div>
-                <dt className="inline font-medium text-ink-2">Organiser: </dt>
-                <dd className="inline text-muted">{email.organiser}</dd>
-              </div>
-            )}
-            {email.registration_link && (
-              <a
-                href={email.registration_link}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="mt-2 block rounded-xl bg-accent px-4 py-2 text-center font-semibold text-on-accent"
-              >
-                Register / apply
-              </a>
-            )}
-            <p className="pt-1 text-xs text-faint">Details found by AI. Please double-check.</p>
-          </dl>
-        )}
-
-        <div className="mt-4 whitespace-pre-line break-words text-sm leading-relaxed text-ink">
-          <Linkified text={email.body_text || email.snippet} />
+      <article className="card p-6">
+        <h1 className="text-2xl font-bold leading-snug text-ink">{email.subject}</h1>
+        <div className="mt-4 flex items-center gap-3">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+            style={{ background: `linear-gradient(135deg, ${fg}, #5b3ff8)` }}
+          >
+            {initials(email.sender_name)}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">
+              {email.sender_name}{' '}
+              {email.sender_email && (
+                <span className="font-normal text-muted">&lt;{email.sender_email}&gt;</span>
+              )}
+            </p>
+            <p className="text-xs text-faint">{formatDateTime(email.received_at)}</p>
+          </div>
         </div>
 
-        {email.web_link && (
-          <a
-            href={email.web_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block text-sm text-accent underline"
+        {/* AI summary */}
+        <section className="mt-5 rounded-2xl bg-accent-soft p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 font-semibold text-ink">
+              <SparkleIcon className="h-5 w-5 text-accent" /> AI Summary
+            </h2>
+            <span
+              className="rounded-full px-3 py-1 text-xs font-semibold"
+              style={{ background: bg, color: fg }}
+            >
+              {segmentLabel(email.segment)}
+            </span>
+          </div>
+          {summary.length ? (
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-2 marker:text-accent">
+              {summary.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-muted">The AI is still reading this email.</p>
+          )}
+          <p className="mt-3 text-xs text-faint">
+            Found by AI. Please double-check important details.
+          </p>
+        </section>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => downloadIcs(email)}
+            disabled={!hasDate}
+            className="btn-ghost"
+            title={hasDate ? 'Download a calendar file' : 'No date found in this email'}
           >
-            {openOriginalLabel(email.web_link)} ↗
-          </a>
-        )}
+            <CalendarIcon className="h-5 w-5" /> Add to Calendar
+          </button>
+          {openLink ? (
+            <a
+              href={openLink}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="btn-primary"
+            >
+              {email.registration_link ? 'View Opportunity' : 'Open in Gmail'}
+              {email.registration_link ? (
+                <ArrowRightIcon className="h-5 w-5" />
+              ) : (
+                <ExternalIcon className="h-5 w-5" />
+              )}
+            </a>
+          ) : (
+            <button type="button" disabled className="btn-primary">
+              View Opportunity <ArrowRightIcon className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </article>
 
-      <section className="mt-4 rounded-2xl border border-line bg-surface p-4">
-        <label className="block text-sm font-medium text-ink-2">
+      <article className="card p-6">
+        <h2 className="mb-3 font-semibold text-ink">Email</h2>
+        <div className="whitespace-pre-line break-words text-sm leading-relaxed text-ink-2">
+          <Linkified text={email.body_text || email.snippet} />
+        </div>
+      </article>
+
+      <section className="card p-6">
+        <label className="block text-sm font-semibold text-ink">
           Segment
           <select
             value={email.segment ?? ''}
             disabled={moving}
             onChange={(e) => move(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-line px-3 py-2.5 text-sm"
           >
             {!email.segment && <option value="">Sorting…</option>}
             {SEGMENT_ORDER.map((code) => (
@@ -196,16 +263,9 @@ export default function EmailDetailPage() {
             ))}
           </select>
         </label>
-        <p className="mt-2 text-xs text-faint">
-          {email.segment_reason ? `Why: ${email.segment_reason}. ` : ''}
-          If you move it, future emails from this sender will go there too.
+        <p className="mt-2 text-xs text-muted">
+          Wrong segment? Move it, and future emails from this sender will follow.
         </p>
-        <Link
-          to={`/inbox?segment=${email.segment ?? ''}`}
-          className="mt-2 inline-block text-sm text-accent"
-        >
-          See all in {segmentLabel(email.segment)}
-        </Link>
       </section>
     </div>
   )

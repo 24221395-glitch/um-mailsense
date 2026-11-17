@@ -143,6 +143,13 @@ def item(i, segment, title="Something", text=""):
     return RecommendItem(id=f"email:{i}", kind="email", title=title, text=text, segment=segment)
 
 
+def test_security_messages_are_for_you_without_the_llm():
+    calls = []
+    recs = recommend(PROFILE, [item(1, Segment.SECURITY)], llm({"results": []}, calls))
+    assert recs[0].label == "for_you" and recs[0].reason == "About your account security"
+    assert calls == []
+
+
 def test_notices_and_not_for_me_skip_the_llm():
     calls = []
     items = [item(1, Segment.UM_NOTICE), item(2, Segment.NOT_FOR_ME)]

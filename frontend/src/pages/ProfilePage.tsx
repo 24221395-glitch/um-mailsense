@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { PlusIcon, UploadIcon } from '../components/icons'
 import { deleteProfile, getProfile, saveProfile, uploadCv } from '../api/profile'
 import type { Profile, ProfileInput } from '../types/api'
 
@@ -60,12 +61,8 @@ function TagEditor({
           aria-label={`Add ${label.toLowerCase()}`}
           className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm"
         />
-        <button
-          type="button"
-          onClick={add}
-          className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-muted"
-        >
-          Add
+        <button type="button" onClick={add} className="btn-soft">
+          <PlusIcon className="h-4 w-4" /> Add
         </button>
       </div>
     </div>
@@ -171,8 +168,9 @@ export default function ProfilePage() {
           type="button"
           disabled={busy !== null}
           onClick={() => fileInput.current?.click()}
-          className="mt-3 w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent disabled:opacity-50"
+          className="btn-primary mt-3 w-full"
         >
+          <UploadIcon className="h-5 w-5" />
           {busy === 'upload' ? 'Reading your CV…' : profile ? 'Upload a new CV' : 'Choose CV file'}
         </button>
       </section>
@@ -241,12 +239,12 @@ export default function ProfilePage() {
           type="button"
           disabled={busy !== null}
           onClick={handleSave}
-          className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-on-accent disabled:opacity-50"
+          className="btn-primary w-full"
         >
           {busy === 'save' ? 'Saving…' : 'Save profile'}
         </button>
         {profile && (
-          <button type="button" onClick={handleDelete} className="w-full text-sm text-danger">
+          <button type="button" onClick={handleDelete} className="btn-danger w-full">
             Delete profile
           </button>
         )}

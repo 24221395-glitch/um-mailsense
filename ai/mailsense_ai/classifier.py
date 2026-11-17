@@ -7,7 +7,7 @@ from mailsense_ai.contracts import Classification, EmailInput, Segment
 from mailsense_ai.llm_client import LLMClient, LLMError, get_client
 from mailsense_ai.prompts import load
 
-PROMPT_VERSION = os.environ.get("MAILSENSE_CLASSIFY_PROMPT", "classify_v1")
+PROMPT_VERSION = os.environ.get("MAILSENSE_CLASSIFY_PROMPT", "classify_v2")
 MAX_BODY_CHARS = 2500  # keeps cost down; the top of an email carries its purpose
 
 # UM staff/offices send from these domains (students use siswa*.um.edu.my, so those are

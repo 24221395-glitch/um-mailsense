@@ -72,6 +72,14 @@ def test_not_for_me_skips_extraction(db, fake_inbox, fake_ai):
     assert fake_ai["extract_calls"] == 0
 
 
+def test_security_skips_extraction(db, fake_inbox, fake_ai):
+    fake_ai["segment"] = "SECURITY"
+    user = _user_with_mail(db, fake_inbox, n=1)
+    ai_bridge.process_pending(db, user)
+    assert fake_ai["extract_calls"] == 0
+    assert db.scalar(select(Email)).segment == "SECURITY"
+
+
 def test_manual_segment_is_kept(db, fake_inbox, fake_ai):
     user = _user_with_mail(db, fake_inbox, n=1)
     email = db.scalar(select(Email))

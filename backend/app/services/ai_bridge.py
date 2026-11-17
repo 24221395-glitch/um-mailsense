@@ -114,8 +114,8 @@ def process_email(email: Email, db: Session | None = None) -> None:
             email.segment = result.segment.value
             email.segment_confidence = result.confidence
             email.segment_reason = result.reason
-    # Extraction costs a second call; skip mail the student will not care about.
-    if email.segment != ai.Segment.NOT_FOR_ME:
+    # Extraction costs a second call; skip mail with nothing to extract (spam, sign-in codes).
+    if email.segment not in (ai.Segment.NOT_FOR_ME, ai.Segment.SECURITY):
         details = ai.extract_details(data)
         email.deadline = details.deadline
         email.event_date = details.event_date
