@@ -10,7 +10,6 @@ import {
   Logo,
   LockIcon,
   MailIcon,
-  MicrosoftLogo,
   SEGMENT_ICONS,
   ShieldIcon,
   SparkleIcon,
@@ -34,6 +33,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   session_expired: 'Sign-in took too long. Please try again.',
   invalid_state: 'Sign-in could not be verified. Please try again.',
   email_not_verified: 'Your Google email address is not verified.',
+  signin_unavailable:
+    'Siswamail sign-in is being set up and will open very soon. Please check back shortly.',
 }
 
 const YEAR = new Date().getFullYear()
@@ -90,7 +91,7 @@ const FEATURES = [
 const STEPS = [
   [
     'Sign in with Siswamail',
-    'Use your UM Microsoft 365 account. We never see your password, and access is read-only.',
+    'Use your Siswamail (Google) account. We never see your password, and access is read-only.',
   ],
   [
     'AI sorts your inbox',
@@ -117,7 +118,7 @@ const FAQS = [
   ],
   [
     'Can I use it without a Siswamail account?',
-    'Yes, you can sign in with Google to sort a Gmail inbox. Siswamail is recommended for UM notices.',
+    'Yes, any Google (Gmail) account can sign in. Use your Siswamail account to get your UM notices sorted.',
   ],
   [
     'How do I stop using it?',
@@ -125,23 +126,25 @@ const FAQS = [
   ],
 ]
 
+/** Siswamail is Google Workspace, so "Sign in with Siswamail" uses Google sign-in. */
 function SignInButton({
   next,
-  disabled,
+  ready,
+  onNotReady,
   className = '',
 }: {
   next?: string
-  disabled?: boolean
+  ready: boolean
+  onNotReady: () => void
   className?: string
 }) {
   return (
     <button
       type="button"
-      disabled={disabled}
-      onClick={() => signIn('microsoft', next)}
+      onClick={() => (ready ? signIn('google', next) : onNotReady())}
       className={`btn-primary ${className}`}
     >
-      <MicrosoftLogo />
+      <GoogleLogo />
       Sign in with Siswamail
     </button>
   )
@@ -156,7 +159,7 @@ function InboxPreview() {
         <span className="h-3 w-3 rounded-full bg-faint" />
       </div>
       <div className="flex">
-        <aside className="hidden w-40 shrink-0 space-y-1 border-r border-line p-3 text-sm sm:block">
+        <aside className="hidden w-40 shrink-0 space-y-1 border-r border-line p-3 text-sm sm:block lg:hidden wide:block">
           <p className="flex items-center gap-1.5 px-2 py-2 font-medium text-ink">
             <MailIcon className="h-3.5 w-3.5 text-accent" /> UM{' '}
             <span className="text-accent">MailSense</span>
@@ -214,6 +217,8 @@ export default function LoginPage() {
   const [params] = useSearchParams()
   const [providers, setProviders] = useState<Providers>({ microsoft: true, google: true })
   const error = params.get('error')
+  const [notReady, setNotReady] = useState(false)
+  const showNotReady = () => setNotReady(true)
 
   useEffect(() => {
     // Already signed in? Go straight to the inbox.
@@ -247,7 +252,8 @@ export default function LoginPage() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <SignInButton
-              disabled={!providers.microsoft}
+              ready={providers.google}
+              onNotReady={showNotReady}
               className="hidden px-4 py-2.5 text-sm sm:inline-flex"
             />
           </div>
@@ -256,12 +262,12 @@ export default function LoginPage() {
 
       <main id="home">
         {/* hero */}
-        <section className="mx-auto grid max-w-[90rem] items-center gap-10 px-4 pb-12 pt-10 sm:px-8 lg:grid-cols-[minmax(0,37rem)_1fr] lg:pt-16">
+        <section className="mx-auto grid max-w-[90rem] items-center gap-10 px-4 pb-12 pt-10 sm:px-8 lg:grid-cols-[minmax(0,31rem)_1fr] lg:pt-16 wide:grid-cols-[minmax(0,37rem)_1fr]">
           <div>
             <p className="eyebrow flex items-center gap-4">
               Universiti Malaya <span className="h-px w-8 bg-accent" />
             </p>
-            <h1 className="mt-5 text-4xl font-semibold leading-[1.15] text-ink sm:text-5xl lg:text-[3.2rem]">
+            <h1 className="mt-5 text-4xl font-semibold leading-[1.15] text-ink sm:text-5xl lg:text-[2.75rem] wide:text-[3.2rem]">
               Your AI-Powered <br className="hidden sm:block" />
               Siswamail <span className="text-gradient">Companion</span>
             </h1>
@@ -270,12 +276,14 @@ export default function LoginPage() {
               — all in one smart platform.
             </p>
 
-            {error && (
+            {(error || notReady) && (
               <p
                 role="alert"
                 className="mt-6 max-w-xl rounded-xl border border-danger/30 bg-danger-soft p-3 text-sm text-danger"
               >
-                {ERROR_MESSAGES[error] ?? 'Sign-in failed. Please try again.'}
+                {error
+                  ? (ERROR_MESSAGES[error] ?? 'Sign-in failed. Please try again.')
+                  : 'Siswamail sign-in is being set up and will open very soon. Please check back shortly.'}
               </p>
             )}
 
@@ -283,18 +291,9 @@ export default function LoginPage() {
               <a href="#features" className="btn-ghost">
                 Learn More
               </a>
-              <SignInButton disabled={!providers.microsoft} />
+              <SignInButton ready={providers.google} onNotReady={showNotReady} />
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-              {providers.google && (
-                <button
-                  type="button"
-                  onClick={() => signIn('google')}
-                  className="inline-flex items-center gap-2 text-sm text-muted hover:text-accent"
-                >
-                  <GoogleLogo /> or continue with Google
-                </button>
-              )}
               {providers.demo && (
                 <button
                   type="button"
@@ -308,7 +307,7 @@ export default function LoginPage() {
 
             <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-ink-2">
               <li className="flex items-center gap-2">
-                <ShieldIcon className="h-5 w-5 text-accent" /> Official Microsoft 365
+                <ShieldIcon className="h-5 w-5 text-accent" /> Secure Google sign-in
               </li>
               <li className="hidden h-5 w-px bg-line-strong sm:block" aria-hidden="true" />
               <li className="flex items-center gap-2">
@@ -322,7 +321,7 @@ export default function LoginPage() {
           </div>
 
           <div className="relative mx-auto flex w-full max-w-xl items-center lg:max-w-none">
-            <Mascot className="pointer-events-none relative z-10 -mr-8 hidden w-[15rem] shrink-0 translate-y-6 drop-shadow-[0_20px_40px_rgba(247,147,30,0.25)] lg:block xl:w-[17rem]" />
+            <Mascot className="pointer-events-none relative z-10 -mr-14 hidden w-[11rem] shrink-0 translate-y-6 drop-shadow-[0_20px_40px_rgba(247,147,30,0.25)] lg:block wide:-mr-8 wide:w-[15rem] 2xl:w-[17rem]" />
             <div className="min-w-0 flex-1">
               <InboxPreview />
               <Mascot className="mx-auto mt-6 w-48 lg:hidden" />
@@ -374,16 +373,11 @@ export default function LoginPage() {
               </p>
             </div>
             <div className="flex flex-col gap-3">
-              <SignInButton next="/organisation" disabled={!providers.microsoft} />
-              {providers.google && (
-                <button
-                  type="button"
-                  onClick={() => signIn('google', '/organisation')}
-                  className="btn-ghost"
-                >
-                  <GoogleLogo /> Register with Google
-                </button>
-              )}
+              <SignInButton
+                next="/organisation"
+                ready={providers.google}
+                onNotReady={showNotReady}
+              />
             </div>
           </div>
         </section>

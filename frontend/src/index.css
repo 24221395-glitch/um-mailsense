@@ -60,6 +60,8 @@
 
 @theme inline {
   --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  /* between xl (1280px) and 2xl (1536px): room for the robot beside the inbox preview */
+  --breakpoint-wide: 87.5rem;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);

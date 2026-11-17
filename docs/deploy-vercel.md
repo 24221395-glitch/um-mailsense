@@ -9,7 +9,7 @@ Browser ──► https://<your-project>.vercel.app
               ├─ /            React app (frontend/dist)
               └─ /api/...     FastAPI (api/index.py ──► backend/app + ai/mailsense_ai)
                                   ├─► Neon PostgreSQL
-                                  ├─► Microsoft Graph / Gmail API (read-only)
+                                  ├─► Gmail API (read-only)
                                   └─► OpenRouter (Llama 4 Scout)
 ```
 
@@ -32,8 +32,7 @@ Time needed: about 45 minutes the first time.
 | Vercel (Hobby, free) | hosting | https://vercel.com — sign up **with GitHub** |
 | Neon (free) | database | https://neon.tech — sign up with GitHub |
 | OpenRouter (prepaid credit) | AI (Llama 4 Scout) | https://openrouter.ai |
-| Microsoft Entra app | "Sign in with Siswamail" | see Milestone 1 notes / step 6 |
-| Google Cloud OAuth app | "Sign in with Google" (optional) | see step 6 |
+| Google Cloud OAuth app | "Sign in with Siswamail" (Google) | see step 6 |
 
 On your computer you need the project as it is now (Python virtual environment in
 `backend\.venv`).
@@ -110,11 +109,8 @@ cd E:\project\mailsense\backend
 | `FRONTEND_URL` | the same address |
 | `LLM_PROVIDER` | `openrouter` |
 | `LLM_API_KEY` | your OpenRouter API key |
-| `MS_CLIENT_ID` | Microsoft app (client) ID |
-| `MS_CLIENT_SECRET` | Microsoft client secret **value** |
-| `MS_TENANT` | `common` (or UM's tenant ID if UM IT registers the app) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID (optional) |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (optional) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID (step 6) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (step 6) |
 | `ADMIN_EMAILS` | your email(s), comma separated, e.g. `24221395@siswa.um.edu.my` |
 | `ALLOWED_EMAIL_DOMAINS` | leave **empty** to allow Gmail too; `siswa.um.edu.my,siswa365.um.edu.my` for UM accounts only |
 | `DEMO_MODE` | `false` (the app refuses to start in production otherwise) |
@@ -124,30 +120,39 @@ After changing variables, use **Deployments → ⋯ → Redeploy**.
 
 ---
 
-## 6. Point Microsoft and Google at the live site
+## 6. Google sign-in ("Sign in with Siswamail")
 
-**Microsoft (Siswamail)** — portal.azure.com → Microsoft Entra ID → App registrations → your app:
-- **Authentication → Add a platform / Web → Redirect URI:**
-  `https://<your-project>.vercel.app/api/v1/auth/microsoft/callback`
-  (keep the `http://localhost:8000/...` one for local development)
-- **API permissions:** Microsoft Graph → Delegated → `User.Read`, `Mail.Read`
-- **Admin consent by UM IT:** send UM IT this link (fill in both values):
-  `https://login.microsoftonline.com/<UM-tenant-id>/adminconsent?client_id=<MS_CLIENT_ID>&redirect_uri=https://<your-project>.vercel.app/api/v1/auth/microsoft/callback`
-  The UM tenant ID is the long ID inside `issuer` at
-  `https://login.microsoftonline.com/siswa.um.edu.my/v2.0/.well-known/openid-configuration`.
+Siswamail (`@siswa.um.edu.my`) is a **Google Workspace** account, so MailSense signs students
+in with Google and reads mail through the Gmail API (read-only).
 
-**Google (optional)** — console.cloud.google.com → APIs & Services → Credentials → your
-OAuth client → **Authorised redirect URIs:**
-`https://<your-project>.vercel.app/api/v1/auth/google/callback`.
-While the app is in *Testing*, only the Gmail addresses listed under **OAuth consent screen →
-Test users** (max 100) can sign in.
+1. https://console.cloud.google.com → sign in with your Siswamail → create a project
+   `UM MailSense`.
+2. **APIs & Services → Library →** enable **Gmail API**.
+3. **Google Auth Platform / OAuth consent screen:**
+   - User type **Internal** if it is offered (only UM accounts; no Google review needed).
+     Otherwise **External**, and add each tester's address under **Audience → Test users**
+     (max 100 while the app is in *Testing*).
+   - App name `UM MailSense`, support email, developer contact.
+   - **Data access / Scopes:** add `openid`, `.../auth/userinfo.email`,
+     `.../auth/userinfo.profile` and `.../auth/gmail.readonly`.
+4. **Clients → Create client → Web application**, name `MailSense web`.
+   **Authorised redirect URIs:**
+   - `https://<your-project>.vercel.app/api/v1/auth/google/callback`
+   - `http://localhost:8000/api/v1/auth/google/callback` (local development)
+5. Copy the **Client ID** and **Client secret** into Vercel as `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET`, then redeploy.
+6. **UM IT:** if UM's Google Workspace blocks unknown apps, a Workspace admin trusts the app in
+   *Admin console → Security → Access and data control → API controls → Manage third-party
+   app access → Add app → OAuth App Name Or Client ID* (paste the Client ID) → **Trusted**.
+
+Microsoft sign-in (`MS_*` variables) is supported by the code but not used for UM.
 
 ---
 
 ## 7. Check the live site
 
 1. `https://<your-project>.vercel.app/api/v1/health` shows `{"status":"ok"}`.
-2. The landing page loads and **Sign in with Siswamail** is not greyed out.
+2. The landing page loads and **Sign in with Siswamail** opens Google's sign-in page.
 3. Sign in → inbox shows "Checking for new mail…" then your emails, then "Sorting N emails
    with AI…" until each email has a segment.
 4. Upload a CV on **My CV** → the **For You** list fills in.
@@ -159,8 +164,9 @@ Common problems:
 
 | Symptom | Fix |
 |---|---|
-| Page says sign-in failed with `admin_approval_required` | UM IT has not granted admin consent yet (step 6) |
-| Microsoft error *redirect URI mismatch* | the redirect URI in Entra must match `BACKEND_URL` exactly |
+| Google says *Access blocked* / *admin policy* | UM IT must trust the app's Client ID (step 6.6) |
+| Google error *redirect_uri_mismatch* | the redirect URI in Google Cloud must match `BACKEND_URL` exactly |
+| Google says the app is *not verified* / access denied | add the address under Test users, or use an Internal consent screen |
 | Signed in but immediately signed out | `BACKEND_URL`/`FRONTEND_URL` must be the same `https://...vercel.app` address |
 | Emails stay "Sorting…" and a yellow notice appears | `LLM_API_KEY` missing or OpenRouter credit used up |
 | 500 errors mentioning the database | `DATABASE_URL` wrong, or step 2.3 (create tables) not run |

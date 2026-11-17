@@ -131,8 +131,6 @@ export default function InboxPage() {
 
   const unreadCount = counts.reduce((sum, c) => sum + c.unread, 0)
   const reconnect = user?.accounts.find((a) => a.needs_reconnect)
-  const hasGoogle = user?.accounts.some((a) => a.provider === 'google')
-  const hasMicrosoft = user?.accounts.some((a) => a.provider === 'microsoft')
 
   async function handleSync() {
     setSyncing(true)
@@ -182,19 +180,6 @@ export default function InboxPage() {
             Reconnect
           </button>
         </div>
-      )}
-
-      {user && (!hasGoogle || !hasMicrosoft) && (
-        <p className="mb-4 text-xs text-muted">
-          Also use {hasMicrosoft ? 'Gmail' : 'Siswamail'}?{' '}
-          <button
-            type="button"
-            className="font-medium text-accent"
-            onClick={() => signIn(hasMicrosoft ? 'google' : 'microsoft')}
-          >
-            Connect it
-          </button>
-        </p>
       )}
 
       {keepWorking && work && (

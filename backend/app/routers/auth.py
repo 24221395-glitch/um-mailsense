@@ -92,7 +92,12 @@ def _safe_next(path: str | None) -> str:
 
 @router.get("/{provider}/login")
 def login(provider: str, login_hint: str | None = None, next: str | None = None):
-    module = _module(provider)
+    try:
+        module = _module(provider)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_503_SERVICE_UNAVAILABLE:  # not configured yet
+            return _to_frontend("/", error="signin_unavailable")
+        raise
     url, flow = module.start_flow(login_hint)
     response = RedirectResponse(url, status.HTTP_302_FOUND)
     state = encrypt_json({"flow": flow, "next": _safe_next(next)})
