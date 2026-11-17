@@ -180,34 +180,56 @@ function SignInButton({
   )
 }
 
+/** Glassy floating segment card with a glowing gradient icon (hero decoration). */
 function FloatCard({
   Icon,
-  color,
+  from,
+  to,
   title,
   sub,
+  delay = '0s',
   className = '',
 }: {
   Icon: typeof TrophyIcon
-  color: string
+  from: string
+  to: string
   title: string
   sub: string
+  delay?: string
   className?: string
 }) {
   return (
-    <div
-      className={`absolute flex items-center gap-3 rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-[0_12px_32px_rgba(60,40,160,0.14)] backdrop-blur-md ${className}`}
-    >
-      <span
-        className="flex h-11 w-11 items-center justify-center rounded-xl"
-        style={{ background: `${color}1f`, color }}
+    <div className={`animate-float absolute ${className}`} style={{ animationDelay: delay }}>
+      {/* coloured halo behind the card */}
+      <div
+        className="absolute -inset-3 rounded-[1.75rem] opacity-60 blur-2xl"
+        style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+      />
+      <div
+        className="relative flex items-center gap-3 rounded-2xl border bg-white/85 py-3 pl-3 pr-5 backdrop-blur-xl"
+        style={{
+          borderColor: `${to}40`,
+          boxShadow: `0 14px 34px ${to}33, inset 0 1px 0 rgba(255,255,255,0.9)`,
+        }}
       >
-        <Icon className="h-6 w-6" />
-      </span>
-      <div className="pr-1">
-        <p className="text-sm font-semibold text-[#17123a]">{title}</p>
-        <p className="text-xs font-semibold" style={{ color }}>
-          {sub}
-        </p>
+        <span
+          className="flex h-12 w-12 items-center justify-center rounded-xl text-white"
+          style={{
+            background: `linear-gradient(135deg, ${from}, ${to})`,
+            boxShadow: `0 8px 18px ${to}66, inset 0 1px 0 rgba(255,255,255,0.45)`,
+          }}
+        >
+          <Icon className="h-6 w-6" strokeWidth={2.1} />
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-[#17123a]">{title}</p>
+          <p
+            className="mt-0.5 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold"
+            style={{ background: `${to}1c`, color: to }}
+          >
+            {sub}
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -224,36 +246,47 @@ function HeroVisual() {
       <SparkleIcon className="absolute left-16 bottom-24 h-4 w-4 text-accent/40" />
 
       {/* mail app tile */}
-      <div className="animate-float absolute left-[38%] top-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5aa7ff] to-[#3b6cf6] text-white shadow-[0_14px_30px_rgba(59,108,246,0.35)]">
-        <MailIcon className="h-9 w-9" />
+      <div className="animate-float absolute left-[38%] top-2" style={{ animationDelay: '1.2s' }}>
+        <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-[#60a5fa] to-[#6366f1] opacity-50 blur-2xl" />
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#60a5fa] to-[#4f46e5] text-white shadow-[0_14px_30px_rgba(79,70,229,0.45),inset_0_1px_0_rgba(255,255,255,0.5)]">
+          <MailIcon className="h-9 w-9" strokeWidth={2} />
+        </div>
       </div>
 
       <Mascot className="absolute left-1/2 top-10 w-[16rem] -translate-x-[40%] sm:top-8 sm:w-[22rem] sm:-translate-x-[30%]" />
 
       <FloatCard
         Icon={TrophyIcon}
-        color="#7c5cff"
+        from="#a78bfa"
+        to="#6d4aff"
+        delay="0s"
         title="Hackathon"
         sub="3 new"
         className="left-0 top-24"
       />
       <FloatCard
         Icon={MegaphoneIcon}
-        color="#f59e0b"
+        from="#fcd34d"
+        to="#f59e0b"
+        delay="1.5s"
         title="UM Notice"
         sub="2 new"
         className="-left-2 top-[13.5rem]"
       />
       <FloatCard
         Icon={CalendarIcon}
-        color="#a855f7"
+        from="#f472b6"
+        to="#a855f7"
+        delay="3s"
         title="Events"
         sub="5 new"
         className="left-14 bottom-6"
       />
       <FloatCard
         Icon={KeyShieldIcon}
-        color="#0ea5a4"
+        from="#5eead4"
+        to="#0ea5a4"
+        delay="2.2s"
         title="Security"
         sub="1 new"
         className="right-0 bottom-16 hidden sm:flex"
