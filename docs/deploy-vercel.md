@@ -50,7 +50,7 @@ Vercel publishes the repo's **production branch** (normally `main`). The finishe
 
 ## 2. Create the database (Neon)
 
-1. In Neon: **New project** → name `mailsense` → region **AWS Asia Pacific (Singapore)**
+1. In Neon: **New project** → name `mailsense` → region **AWS Asia Pacific (Singapore)** (the Vercel function also runs in Singapore, `sin1` in vercel.json)
    (closest to Malaysia) → Create.
 2. On the project dashboard, click **Connect**, tick **Connection pooling**, and copy the
    connection string. It looks like:

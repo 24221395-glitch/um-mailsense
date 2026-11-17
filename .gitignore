@@ -42,3 +42,4 @@ backend/*.db
 *.safetensors
 *.gguf
 models/
+.neon

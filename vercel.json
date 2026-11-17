@@ -3,6 +3,9 @@
   "installCommand": "npm ci --prefix frontend",
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
+  "regions": [
+    "sin1"
+  ],
   "functions": {
     "api/index.py": {
       "maxDuration": 300,
@@ -10,8 +13,19 @@
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ],
-  "crons": [{ "path": "/api/v1/cron/sync", "schedule": "0 22 * * *" }]
+  "crons": [
+    {
+      "path": "/api/v1/cron/sync",
+      "schedule": "0 22 * * *"
+    }
+  ]
 }
