@@ -25,6 +25,7 @@ import {
   UsersIcon,
 } from '../components/icons'
 import { Mascot } from '../components/Illustrations'
+import ScaledStage from '../components/ScaledStage'
 import { SEGMENT_COLORS, segmentLabel } from '../segments'
 import type { Providers } from '../types/api'
 
@@ -236,62 +237,73 @@ function FloatCard({
   )
 }
 
+/**
+ * Robot + floating segment cards, designed on a 560x480 canvas and scaled as one piece to
+ * the available width, so the composition fits identically on phones, tablets and desktops.
+ */
 function HeroVisual() {
   return (
-    <div className="relative mx-auto h-[30rem] w-full max-w-xl" aria-hidden="true">
-      {/* soft light behind the robot + two orbit rings */}
-      <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,92,255,0.30),rgba(124,92,255,0.08)_45%,transparent_70%)]" />
-      <div className="absolute left-1/2 top-[56%] h-64 w-[34rem] max-w-[115%] -translate-x-1/2 -translate-y-1/2 -rotate-[14deg] rounded-[50%] border-2 border-accent/20" />
-      <div className="absolute left-1/2 top-[56%] h-80 w-[38rem] max-w-[125%] -translate-x-1/2 -translate-y-1/2 -rotate-[14deg] rounded-[50%] border border-accent/10" />
-      <SparkleIcon className="absolute right-10 top-8 h-6 w-6 text-accent/50" />
-      <SparkleIcon className="absolute left-16 bottom-24 h-4 w-4 text-accent/40" />
+    <div id="hero-visual" className="w-full">
+      <ScaledStage width={560} height={480} className="mx-auto max-w-[40rem]">
+        <div aria-hidden="true" className="absolute inset-0">
+          {/* soft light behind the robot + two orbit rings */}
+          <div className="absolute left-[90px] top-[40px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(124,92,255,0.30),rgba(124,92,255,0.08)_45%,transparent_70%)]" />
+          <div className="absolute left-[10px] top-[170px] h-[230px] w-[540px] -rotate-[14deg] rounded-[50%] border-2 border-accent/20" />
+          <div className="absolute left-[-20px] top-[140px] h-[290px] w-[600px] -rotate-[14deg] rounded-[50%] border border-accent/10" />
+          <SparkleIcon className="absolute left-[500px] top-[40px] h-6 w-6 text-accent/50" />
+          <SparkleIcon className="absolute left-[150px] top-[370px] h-4 w-4 text-accent/40" />
 
-      {/* mail app tile */}
-      <div className="animate-float absolute left-[38%] top-2" style={{ animationDelay: '1.2s' }}>
-        <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-[#60a5fa] to-[#6366f1] opacity-50 blur-2xl" />
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#60a5fa] to-[#4f46e5] text-white shadow-[0_14px_30px_rgba(79,70,229,0.45),inset_0_1px_0_rgba(255,255,255,0.5)]">
-          <MailIcon className="h-9 w-9" strokeWidth={2} />
+          {/* mail app tile */}
+          <div
+            className="animate-float absolute left-[212px] top-[4px]"
+            style={{ animationDelay: '1.2s' }}
+          >
+            <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-[#60a5fa] to-[#6366f1] opacity-50 blur-2xl" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#60a5fa] to-[#4f46e5] text-white shadow-[0_14px_30px_rgba(79,70,229,0.45),inset_0_1px_0_rgba(255,255,255,0.5)]">
+              <MailIcon className="h-9 w-9" strokeWidth={2} />
+            </div>
+          </div>
+
+          <Mascot className="absolute left-[200px] top-[44px] w-[330px]" />
+
+          <FloatCard
+            Icon={TrophyIcon}
+            from="#a78bfa"
+            to="#6d4aff"
+            delay="0s"
+            title="Hackathon"
+            sub="3 new"
+            className="left-[8px] top-[104px]"
+          />
+          <FloatCard
+            Icon={MegaphoneIcon}
+            from="#fcd34d"
+            to="#f59e0b"
+            delay="1.5s"
+            title="UM Notice"
+            sub="2 new"
+            className="left-[0px] top-[222px]"
+          />
+          <FloatCard
+            Icon={CalendarIcon}
+            from="#f472b6"
+            to="#a855f7"
+            delay="3s"
+            title="Events"
+            sub="5 new"
+            className="left-[70px] top-[360px]"
+          />
+          <FloatCard
+            Icon={KeyShieldIcon}
+            from="#5eead4"
+            to="#0ea5a4"
+            delay="2.2s"
+            title="Security"
+            sub="1 new"
+            className="left-[392px] top-[352px]"
+          />
         </div>
-      </div>
-
-      <Mascot className="absolute left-1/2 top-10 w-[16rem] -translate-x-[40%] sm:top-8 sm:w-[22rem] sm:-translate-x-[30%]" />
-
-      <FloatCard
-        Icon={TrophyIcon}
-        from="#a78bfa"
-        to="#6d4aff"
-        delay="0s"
-        title="Hackathon"
-        sub="3 new"
-        className="left-0 top-24"
-      />
-      <FloatCard
-        Icon={MegaphoneIcon}
-        from="#fcd34d"
-        to="#f59e0b"
-        delay="1.5s"
-        title="UM Notice"
-        sub="2 new"
-        className="-left-2 top-[13.5rem]"
-      />
-      <FloatCard
-        Icon={CalendarIcon}
-        from="#f472b6"
-        to="#a855f7"
-        delay="3s"
-        title="Events"
-        sub="5 new"
-        className="left-14 bottom-6"
-      />
-      <FloatCard
-        Icon={KeyShieldIcon}
-        from="#5eead4"
-        to="#0ea5a4"
-        delay="2.2s"
-        title="Security"
-        sub="1 new"
-        className="right-0 bottom-16 hidden sm:flex"
-      />
+      </ScaledStage>
     </div>
   )
 }
