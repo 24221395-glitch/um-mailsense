@@ -2,22 +2,29 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getMe, getProviders, signIn, signInDemo } from '../api/auth'
 import {
+  ArrowRightIcon,
+  BellIcon,
   CalendarIcon,
   CheckIcon,
   FileIcon,
   GoogleLogo,
+  HomeIcon,
+  InboxIcon,
   KeyShieldIcon,
   LockIcon,
   Logo,
   MailIcon,
   MegaphoneIcon,
+  SEGMENT_ICONS,
   ShieldIcon,
   SparkleIcon,
+  StarIcon,
   TargetIcon,
   TrophyIcon,
   UsersIcon,
 } from '../components/icons'
 import { Mascot } from '../components/Illustrations'
+import { SEGMENT_COLORS, segmentLabel } from '../segments'
 import type { Providers } from '../types/api'
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -43,41 +50,64 @@ const NAV = [
   ['FAQ', '#faq'],
 ]
 
+const STATS = [
+  ['8', 'smart segments'],
+  ['95.8%', 'AI sorting accuracy*'],
+  ['100%', 'read-only access'],
+  ['Free', 'for UM students'],
+]
+
 const FEATURES = [
   [
     MailIcon,
+    '#5b3ff8',
     'AI Email Organisation',
-    'Every Siswamail email sorted into clear segments automatically.',
+    'Every Siswamail email is sorted into clear segments the moment it arrives.',
   ],
   [
     TargetIcon,
+    '#f0436b',
     'Personalised Opportunities',
-    'Hackathons, research, scholarships and events picked for you.',
+    'Hackathons, research posts, scholarships and events picked for you.',
   ],
   [
     FileIcon,
+    '#10b981',
     'CV-Based Recommendation',
-    'Upload your CV and see what matches your skills and interests.',
+    'Upload your CV once and see which opportunities match your skills.',
   ],
   [
     UsersIcon,
+    '#f59e0b',
     'UM Community Board',
     'Programmes and calls from verified UM clubs and organisations.',
+  ],
+  [
+    CalendarIcon,
+    '#3b82f6',
+    'Deadline Calendar',
+    'Deadlines are pulled out of emails and you get a reminder before they pass.',
+  ],
+  [
+    KeyShieldIcon,
+    '#0ea5a4',
+    'Security Inbox',
+    'Sign-in codes and login alerts in one place, phishing kept out of the way.',
   ],
 ] as const
 
 const STEPS = [
   [
     'Sign in with Siswamail',
-    'Use your Siswamail (Google) account. We never see your password, and access is read-only.',
+    'Use your Siswamail (Google) account. Your password stays with Google and access is read-only.',
   ],
   [
     'AI sorts your inbox',
-    'Every new email lands in the right segment, with deadlines, venues and links pulled out.',
+    'Llama 4 reads each new email once and files it, pulling out deadlines, venues and links.',
   ],
   [
     'Get what fits you',
-    'Upload your CV and MailSense highlights the opportunities that match your skills.',
+    'Add your CV and MailSense highlights the opportunities that match your skills and interests.',
   ],
 ]
 
@@ -90,18 +120,14 @@ const SECURITY_POINTS = [
   [
     ShieldIcon,
     'Encrypted storage',
-    'Email content and sign-in tokens are encrypted in our database. Your password is never seen.',
+    'Email content and sign-in tokens are encrypted in our database.',
   ],
   [
     KeyShieldIcon,
     'PDPA compliant',
-    'Your data is used only to sort and recommend — never for advertising or sold to anyone.',
+    'Your data is used only to sort and recommend, never sold or used for ads.',
   ],
-  [
-    CheckIcon,
-    'You stay in control',
-    'Disconnect or delete your account at any time and all your data is removed.',
-  ],
+  [CheckIcon, 'You stay in control', 'Delete your account at any time and everything is removed.'],
 ] as const
 
 const FAQS = [
@@ -132,11 +158,13 @@ function SignInButton({
   ready,
   onNotReady,
   className = '',
+  label = 'Sign in with Siswamail',
 }: {
   next?: string
   ready: boolean
   onNotReady: () => void
   className?: string
+  label?: string
 }) {
   return (
     <button
@@ -147,7 +175,7 @@ function SignInButton({
       <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white">
         <GoogleLogo className="h-4 w-4" />
       </span>
-      Sign in with Siswamail
+      {label}
     </button>
   )
 }
@@ -166,16 +194,18 @@ function FloatCard({
   className?: string
 }) {
   return (
-    <div className={`card absolute flex items-center gap-3 px-4 py-3 backdrop-blur ${className}`}>
+    <div
+      className={`absolute flex items-center gap-3 rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-[0_12px_32px_rgba(60,40,160,0.14)] backdrop-blur-md ${className}`}
+    >
       <span
         className="flex h-11 w-11 items-center justify-center rounded-xl"
         style={{ background: `${color}1f`, color }}
       >
         <Icon className="h-6 w-6" />
       </span>
-      <div>
-        <p className="text-sm font-semibold text-ink">{title}</p>
-        <p className="text-xs font-medium" style={{ color }}>
+      <div className="pr-1">
+        <p className="text-sm font-semibold text-[#17123a]">{title}</p>
+        <p className="text-xs font-semibold" style={{ color }}>
           {sub}
         </p>
       </div>
@@ -185,35 +215,41 @@ function FloatCard({
 
 function HeroVisual() {
   return (
-    <div className="relative mx-auto h-[28rem] w-full max-w-xl" aria-hidden="true">
-      {/* glow + orbit */}
-      <div className="absolute inset-x-6 top-10 bottom-6 rounded-full bg-[radial-gradient(circle,rgba(124,92,255,0.28),transparent_65%)]" />
-      <div className="absolute left-1/2 top-1/2 h-72 w-[30rem] max-w-full -translate-x-1/2 -translate-y-1/3 -rotate-12 rounded-[50%] border-2 border-accent/20" />
-      {/* mail app icon */}
-      <div className="animate-float absolute left-[46%] top-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5aa7ff] to-[#3b6cf6] text-white shadow-lg">
+    <div className="relative mx-auto h-[30rem] w-full max-w-xl" aria-hidden="true">
+      {/* soft light behind the robot + two orbit rings */}
+      <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(124,92,255,0.30),rgba(124,92,255,0.08)_45%,transparent_70%)]" />
+      <div className="absolute left-1/2 top-[56%] h-64 w-[34rem] max-w-[115%] -translate-x-1/2 -translate-y-1/2 -rotate-[14deg] rounded-[50%] border-2 border-accent/20" />
+      <div className="absolute left-1/2 top-[56%] h-80 w-[38rem] max-w-[125%] -translate-x-1/2 -translate-y-1/2 -rotate-[14deg] rounded-[50%] border border-accent/10" />
+      <SparkleIcon className="absolute right-10 top-8 h-6 w-6 text-accent/50" />
+      <SparkleIcon className="absolute left-16 bottom-24 h-4 w-4 text-accent/40" />
+
+      {/* mail app tile */}
+      <div className="animate-float absolute left-[38%] top-2 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5aa7ff] to-[#3b6cf6] text-white shadow-[0_14px_30px_rgba(59,108,246,0.35)]">
         <MailIcon className="h-9 w-9" />
       </div>
-      <Mascot className="absolute -right-2 top-4 w-64 sm:w-80" />
+
+      <Mascot className="absolute left-1/2 top-10 w-[16rem] -translate-x-[40%] sm:top-8 sm:w-[22rem] sm:-translate-x-[30%]" />
+
       <FloatCard
         Icon={TrophyIcon}
         color="#7c5cff"
         title="Hackathon"
         sub="3 new"
-        className="left-0 top-20"
+        className="left-0 top-24"
       />
       <FloatCard
         Icon={MegaphoneIcon}
         color="#f59e0b"
         title="UM Notice"
         sub="2 new"
-        className="left-4 top-44"
+        className="-left-2 top-[13.5rem]"
       />
       <FloatCard
         Icon={CalendarIcon}
         color="#a855f7"
         title="Events"
         sub="5 new"
-        className="left-24 bottom-6"
+        className="left-14 bottom-6"
       />
       <FloatCard
         Icon={KeyShieldIcon}
@@ -226,11 +262,131 @@ function HeroVisual() {
   )
 }
 
-function SectionTitle({ eyebrow, title, id }: { eyebrow: string; title: string; id?: string }) {
+/** A static, scaled-down picture of the real Home dashboard. */
+function ProductPreview() {
+  const tiles = ['UM_NOTICE', 'HACKATHON', 'RESEARCH', 'EVENT', 'SCHOLARSHIP_CAREER', 'SECURITY']
+  const counts = [6, 5, 4, 7, 3, 1]
   return (
-    <div id={id} className="mb-10 scroll-mt-24 text-center">
+    <div className="overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_80px_rgba(60,40,160,0.18)]">
+      <div className="flex items-center gap-2 border-b border-line bg-surface-2 px-4 py-3">
+        <span className="h-3 w-3 rounded-full bg-[#ff6b6b]" />
+        <span className="h-3 w-3 rounded-full bg-[#ffc94d]" />
+        <span className="h-3 w-3 rounded-full bg-[#4fd18b]" />
+        <span className="ml-3 rounded-md bg-surface px-3 py-1 text-xs text-faint">
+          um-mailsense.vercel.app/home
+        </span>
+      </div>
+      <div className="flex">
+        <aside className="hidden w-56 shrink-0 space-y-1 bg-side p-4 text-sm md:block">
+          <Logo light className="mb-5 scale-90 origin-left" />
+          {[
+            [HomeIcon, 'Home'],
+            [InboxIcon, 'Inbox'],
+            [TrophyIcon, 'Opportunities'],
+            [CalendarIcon, 'Calendar'],
+            [FileIcon, 'My CV'],
+          ].map(([Ico, label], i) => {
+            const I = Ico as typeof HomeIcon
+            return (
+              <p
+                key={label as string}
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 ${
+                  i === 0
+                    ? 'bg-gradient-to-r from-accent-2 to-accent text-white'
+                    : 'text-side-muted'
+                }`}
+              >
+                <I className="h-4 w-4" /> {label as string}
+              </p>
+            )
+          })}
+        </aside>
+        <div className="min-w-0 flex-1 space-y-4 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-bold text-ink">Good morning, Aina 👋</p>
+              <p className="text-xs text-muted">Here&apos;s your UM mail at a glance.</p>
+            </div>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-ink-2">
+              <BellIcon className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              [MailIcon, '#5b3ff8', '42', 'Total Emails'],
+              [SparkleIcon, '#7c5cff', '31', 'AI Sorted'],
+              [CalendarIcon, '#f0436b', '5', 'Deadlines'],
+              [StarIcon, '#f59e0b', '8', 'Recommended'],
+            ].map(([Ico, color, n, label]) => {
+              const I = Ico as typeof MailIcon
+              return (
+                <div
+                  key={label as string}
+                  className="flex items-center gap-3 rounded-xl border border-line p-3"
+                >
+                  <span
+                    className="flex h-9 w-9 items-center justify-center rounded-lg"
+                    style={{ background: `${color as string}1a`, color: color as string }}
+                  >
+                    <I className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="font-bold text-ink">{n as string}</p>
+                    <p className="text-[11px] text-muted">{label as string}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-accent-2 to-accent px-5 py-4 text-white">
+            <p className="font-semibold">AI has organised your inbox</p>
+            <p className="text-xs text-white/80">Your emails are classified and prioritised.</p>
+            <Mascot waving={false} className="absolute -bottom-8 right-3 w-24" />
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {tiles.map((code, i) => {
+              const Ico = SEGMENT_ICONS[code]
+              const c = SEGMENT_COLORS[code]!
+              return (
+                <div key={code} className="rounded-xl border border-line p-2 text-center">
+                  <span
+                    className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
+                    style={{ background: c.bg, color: c.fg }}
+                  >
+                    <Ico className="h-4 w-4" />
+                  </span>
+                  <p className="mt-1 truncate text-[11px] font-semibold text-ink">
+                    {segmentLabel(code)}
+                  </p>
+                  <p className="text-[10px] font-medium" style={{ color: c.fg }}>
+                    {counts[i]} new
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  sub,
+  id,
+}: {
+  eyebrow: string
+  title: string
+  sub?: string
+  id?: string
+}) {
+  return (
+    <div id={id} className="mx-auto mb-12 max-w-2xl scroll-mt-24 text-center">
       <p className="eyebrow">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-bold text-ink sm:text-4xl">{title}</h2>
+      <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink sm:text-4xl">{title}</h2>
+      {sub && <p className="mt-4 text-lg text-muted">{sub}</p>}
     </div>
   )
 }
@@ -241,7 +397,10 @@ export default function LoginPage() {
   const [providers, setProviders] = useState<Providers>({ microsoft: false, google: true })
   const error = params.get('error')
   const [notReady, setNotReady] = useState(false)
-  const showNotReady = () => setNotReady(true)
+  const showNotReady = () => {
+    setNotReady(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     // Already signed in? Go straight to the app.
@@ -256,7 +415,7 @@ export default function LoginPage() {
   return (
     <div className="overflow-x-hidden">
       {/* header */}
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/80 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/80 backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-8">
           <Logo />
           <nav aria-label="Sections" className="hidden items-center gap-8 lg:flex">
@@ -280,124 +439,184 @@ export default function LoginPage() {
 
       <main>
         {/* hero */}
-        <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-12 sm:px-8 lg:grid-cols-2 lg:pt-20">
-          <div>
-            <span className="pill">For Universiti Malaya Students</span>
-            <h1 className="mt-6 text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl wide:text-[3.6rem]">
-              Turn Your Siswamail into Opportunities
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2">
-              An AI-powered email organiser that sorts your UM emails, highlights what matters, and
-              recommends opportunities tailored to your skills and interests.
-            </p>
-
-            {(error || notReady) && (
-              <p
-                role="alert"
-                className="mt-6 max-w-xl rounded-xl border border-danger/30 bg-danger-soft p-3 text-sm text-danger"
-              >
-                {error
-                  ? (ERROR_MESSAGES[error] ?? 'Sign-in failed. Please try again.')
-                  : ERROR_MESSAGES.signin_unavailable}
+        <section className="relative">
+          <div className="pointer-events-none absolute -right-40 -top-40 h-[36rem] w-[36rem] rounded-full bg-[radial-gradient(circle,rgba(167,139,250,0.35),transparent_65%)]" />
+          <div className="pointer-events-none absolute -left-40 top-40 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(244,114,182,0.12),transparent_65%)]" />
+          <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 pb-12 pt-12 sm:px-8 lg:grid-cols-2 lg:pt-16">
+            <div>
+              <span className="pill">
+                <SparkleIcon className="mr-2 h-4 w-4" /> For Universiti Malaya Students
+              </span>
+              <h1 className="mt-6 text-4xl font-bold leading-[1.08] tracking-tight text-ink sm:text-5xl xl:text-[3.25rem] wide:text-[3.6rem]">
+                Turn Your Siswamail <br className="hidden sm:block" />
+                into Opportunities
+              </h1>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2">
+                An AI-powered email organiser that sorts your UM emails, highlights what matters,
+                and recommends opportunities tailored to your skills and interests.
               </p>
-            )}
 
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <SignInButton
-                ready={providers.google}
-                onNotReady={showNotReady}
-                className="px-6 py-3.5"
-              />
-              <a href="#features" className="btn-ghost px-6 py-3">
-                Learn More
-              </a>
+              {(error || notReady) && (
+                <p
+                  role="alert"
+                  className="mt-6 max-w-xl rounded-xl border border-danger/30 bg-danger-soft p-3 text-sm text-danger"
+                >
+                  {error
+                    ? (ERROR_MESSAGES[error] ?? 'Sign-in failed. Please try again.')
+                    : ERROR_MESSAGES.signin_unavailable}
+                </p>
+              )}
+
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <SignInButton
+                  ready={providers.google}
+                  onNotReady={showNotReady}
+                  className="px-6 py-3.5 text-base"
+                />
+                <a href="#preview" className="btn-ghost px-6 py-3 text-base">
+                  Learn More
+                </a>
+              </div>
+              {providers.demo && (
+                <button type="button" onClick={signInDemo} className="btn-soft mt-4">
+                  <SparkleIcon className="h-4 w-4" /> Try the demo (sample data)
+                </button>
+              )}
+
+              <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-ink-2">
+                {['Secure Google sign-in', 'PDPA Compliant', 'UM Approved'].map((t) => (
+                  <li key={t} className="flex items-center gap-1.5">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
+                      <CheckIcon className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
             </div>
-            {providers.demo && (
-              <button type="button" onClick={signInDemo} className="btn-soft mt-4">
-                <SparkleIcon className="h-4 w-4" /> Try the demo (sample data)
-              </button>
-            )}
-
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-ink-2">
-              {['Secure Google sign-in', 'PDPA Compliant', 'UM Approved'].map((t) => (
-                <li key={t} className="flex items-center gap-1.5">
-                  <CheckIcon className="h-4 w-4 text-accent" strokeWidth={2.6} /> {t}
-                </li>
-              ))}
-            </ul>
+            <HeroVisual />
           </div>
-          <HeroVisual />
+        </section>
+
+        {/* stats strip */}
+        <section className="mx-auto max-w-6xl px-4 sm:px-8">
+          <div className="card grid grid-cols-2 divide-line p-2 sm:grid-cols-4 sm:divide-x">
+            {STATS.map(([value, label]) => (
+              <div key={label} className="px-4 py-5 text-center">
+                <p className="text-gradient text-3xl font-bold">{value}</p>
+                <p className="mt-1 text-sm text-muted">{label}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-center text-xs text-faint">
+            *Llama 4 Scout on our labelled sample of UM emails.
+          </p>
+        </section>
+
+        {/* product preview */}
+        <section id="preview" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-8">
+          <SectionTitle
+            eyebrow="See it in action"
+            title="Your whole UM inbox, at a glance"
+            sub="MailSense turns a busy Siswamail inbox into a calm dashboard of what matters to you."
+          />
+          <ProductPreview />
         </section>
 
         {/* features */}
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
           <SectionTitle id="features" eyebrow="Features" title="Everything for your UM journey" />
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {FEATURES.map(([Ico, title, text]) => (
-              <article key={title} className="card card-hover p-6">
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                  <Ico className="h-6 w-6" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map(([Ico, color, title, text]) => (
+              <article key={title} className="card card-hover p-7">
+                <span
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl"
+                  style={{ background: `${color}17`, color }}
+                >
+                  <Ico className="h-7 w-7" />
                 </span>
                 <h3 className="mt-5 text-lg font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
+                <p className="mt-2 leading-relaxed text-muted">{text}</p>
               </article>
             ))}
           </div>
         </section>
 
         {/* how it works */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
           <SectionTitle id="how" eyebrow="How it works" title="Three steps to a calmer inbox" />
-          <ol className="grid gap-5 md:grid-cols-3">
+          <ol className="relative grid gap-6 md:grid-cols-3">
+            <span className="absolute left-[16%] right-[16%] top-7 hidden border-t-2 border-dashed border-accent/30 md:block" />
             {STEPS.map(([title, text], i) => (
-              <li key={title} className="card p-6">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent-2 to-accent font-semibold text-white">
+              <li key={title} className="relative text-center">
+                <span className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-2 to-accent text-xl font-bold text-white shadow-[0_10px_24px_rgba(91,63,248,0.35)]">
                   {i + 1}
                 </span>
-                <h3 className="mt-4 text-lg font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
+                <h3 className="mt-5 text-lg font-semibold text-ink">{title}</h3>
+                <p className="mx-auto mt-2 max-w-xs leading-relaxed text-muted">{text}</p>
               </li>
             ))}
           </ol>
         </section>
 
         {/* organisations */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
-          <SectionTitle
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
+          <div
             id="organisations"
-            eyebrow="For organisations"
-            title="Reach the right students"
-          />
-          <div className="grid items-center gap-6 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-2 to-accent p-8 text-white shadow-xl md:grid-cols-[1fr_auto] md:p-10">
-            <p className="max-w-2xl text-lg leading-relaxed text-white/90">
-              Verified UM clubs, societies and offices can post programmes on the community board.
-              MailSense recommends each post to the students whose skills and interests match.
-            </p>
-            <button
-              type="button"
-              onClick={() =>
-                providers.google ? signIn('google', '/organisation') : showNotReady()
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-accent shadow-lg hover:-translate-y-0.5 hover:shadow-xl"
-            >
-              Register your club
-            </button>
+            className="relative grid scroll-mt-24 items-center gap-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#8b6dff] via-accent to-[#4329d9] p-8 text-white shadow-[0_30px_70px_rgba(91,63,248,0.35)] md:grid-cols-[1fr_auto] md:p-12"
+          >
+            <div className="relative z-10 max-w-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/70">
+                For organisations
+              </p>
+              <h2 className="mt-3 text-3xl font-bold">Reach the right students</h2>
+              <p className="mt-3 leading-relaxed text-white/85">
+                Verified UM clubs, societies and offices post programmes on the community board, and
+                MailSense recommends each post to the students whose skills and interests match.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  providers.google ? signIn('google', '/organisation') : showNotReady()
+                }
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-accent shadow-lg hover:-translate-y-0.5 hover:shadow-xl"
+              >
+                Register your club <ArrowRightIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <Mascot className="relative z-10 mx-auto w-48 md:w-60" />
+            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10" />
+            <div className="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5" />
           </div>
         </section>
 
         {/* security */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-8">
-          <SectionTitle id="security" eyebrow="Security & privacy" title="Your inbox stays yours" />
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {SECURITY_POINTS.map(([Ico, title, text]) => (
-              <article key={title} className="card p-6">
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-success-soft text-success">
-                  <Ico className="h-6 w-6" />
-                </span>
-                <h3 className="mt-5 text-lg font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
-              </article>
-            ))}
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
+          <div
+            id="security"
+            className="scroll-mt-24 overflow-hidden rounded-[2rem] bg-side p-8 text-white md:p-12"
+          >
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-side-muted">
+                Security &amp; privacy
+              </p>
+              <h2 className="mt-3 text-3xl font-bold">Your inbox stays yours</h2>
+              <p className="mt-3 text-side-muted">
+                MailSense is built for privacy first, in line with Malaysia&apos;s Personal Data
+                Protection Act 2010.
+              </p>
+            </div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {SECURITY_POINTS.map(([Ico, title, text]) => (
+                <article key={title} className="rounded-2xl bg-side-2 p-5">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-[#7ee8c8]">
+                    <Ico className="h-6 w-6" />
+                  </span>
+                  <h3 className="mt-4 font-semibold">{title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-side-muted">{text}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -406,27 +625,77 @@ export default function LoginPage() {
           <SectionTitle id="faq" eyebrow="FAQ" title="Frequently asked questions" />
           <div className="space-y-3">
             {FAQS.map(([q, a]) => (
-              <details key={q} className="card group p-5">
+              <details key={q} className="card group p-5 open:ring-2 open:ring-accent/30">
                 <summary className="flex list-none items-center justify-between gap-4 font-semibold text-ink">
                   {q}
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent transition group-open:rotate-45">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-lg text-accent transition group-open:rotate-45 group-open:bg-accent group-open:text-white">
                     +
                   </span>
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-muted">{a}</p>
+                <p className="mt-3 leading-relaxed text-muted">{a}</p>
               </details>
             ))}
           </div>
         </section>
+
+        {/* final call to action */}
+        <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
+          <div className="card flex flex-col items-center gap-6 p-10 text-center md:flex-row md:text-left">
+            <Mascot waving={false} className="w-28 shrink-0" />
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-ink">Ready for a calmer Siswamail?</h2>
+              <p className="mt-1 text-muted">Sign in once and let MailSense sort the rest.</p>
+            </div>
+            <SignInButton
+              ready={providers.google}
+              onNotReady={showNotReady}
+              className="px-6 py-3.5"
+              label="Get started"
+            />
+          </div>
+        </section>
       </main>
 
-      <footer className="border-t border-line bg-surface/60">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-8">
-          <Logo />
-          <p className="text-xs text-faint">
-            © {YEAR} UM MailSense · A Universiti Malaya student project
-          </p>
+      <footer className="border-t border-line bg-surface/70">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr]">
+          <div>
+            <Logo />
+            <p className="mt-3 max-w-sm text-sm text-muted">
+              An AI-powered Siswamail organiser and opportunity recommender for Universiti Malaya
+              students.
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-ink">Product</p>
+            <ul className="mt-3 space-y-2 text-sm text-muted">
+              {NAV.slice(0, 3).map(([label, href]) => (
+                <li key={href}>
+                  <a href={href} className="hover:text-accent">
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-ink">Trust</p>
+            <ul className="mt-3 space-y-2 text-sm text-muted">
+              <li>
+                <a href="#security" className="hover:text-accent">
+                  Security &amp; privacy
+                </a>
+              </li>
+              <li>
+                <a href="#faq" className="hover:text-accent">
+                  FAQ
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
+        <p className="border-t border-line py-5 text-center text-xs text-faint">
+          © {YEAR} UM MailSense · A Universiti Malaya student project
+        </p>
       </footer>
     </div>
   )
