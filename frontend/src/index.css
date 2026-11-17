@@ -213,6 +213,7 @@ input[type='checkbox'] {
   .card {
     @apply rounded-2xl border border-line bg-surface;
     box-shadow: var(--shadow);
+    overflow-wrap: anywhere; /* long links / words wrap instead of breaking the layout */
   }
   .card-hover:hover {
     @apply border-line-strong;

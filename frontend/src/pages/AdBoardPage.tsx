@@ -9,6 +9,7 @@ import {
   SearchIcon,
   TrophyIcon,
 } from '../components/icons'
+import Linkified from '../components/Linkified'
 import SegmentTabs from '../components/SegmentTabs'
 import { AD_CATEGORIES, FACULTIES } from '../faculties'
 import { segmentColor, segmentLabel } from '../segments'
@@ -112,7 +113,9 @@ function AdDetail({
             <dd className="inline text-muted">{ad.faculty ?? 'All faculties'}</dd>
           </div>
         </dl>
-        <p className="mt-3 whitespace-pre-line text-sm text-ink-2">{ad.description}</p>
+        <p className="mt-3 whitespace-pre-line text-sm text-ink-2 [overflow-wrap:anywhere]">
+          <Linkified text={ad.description} />
+        </p>
 
         <div className="mt-4 flex gap-2">
           {ad.link && (

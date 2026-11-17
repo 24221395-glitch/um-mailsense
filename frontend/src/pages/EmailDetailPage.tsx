@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { getEmail, updateEmail } from '../api/emails'
@@ -9,34 +9,9 @@ import {
   ExternalIcon,
   SparkleIcon,
 } from '../components/icons'
+import Linkified, { ExternalLink } from '../components/Linkified'
 import { SEGMENT_ORDER, segmentColor, segmentLabel } from '../segments'
 import type { EmailDetail } from '../types/api'
-
-const URL_RE = /(https?:\/\/[^\s<>"')\]]+)/g
-
-/** Plain text with web links made clickable. Nothing is rendered as HTML. */
-function Linkified({ text }: { text: string }) {
-  const parts = text.split(URL_RE)
-  return (
-    <>
-      {parts.map((part, i) =>
-        i % 2 === 1 ? (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="break-all font-medium text-accent underline"
-          >
-            {part}
-          </a>
-        ) : (
-          <Fragment key={i}>{part}</Fragment>
-        ),
-      )}
-    </>
-  )
-}
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString([], {
@@ -139,14 +114,14 @@ export default function EmailDetailPage() {
 
   const { fg, bg } = segmentColor(email.segment)
   const summary = [
-    email.segment_reason && `${segmentLabel(email.segment)}: ${email.segment_reason}.`,
-    email.deadline && `Deadline: ${formatDateTime(email.deadline)}.`,
-    email.event_date && `When: ${formatDateTime(email.event_date)}.`,
-    email.venue && `Where: ${email.venue}.`,
-    email.organiser && `Organised by ${email.organiser}.`,
+    email.segment_reason && `${segmentLabel(email.segment)}: ${email.segment_reason}`,
+    email.deadline && `Deadline: ${formatDateTime(email.deadline)}`,
+    email.event_date && `When: ${formatDateTime(email.event_date)}`,
+    email.venue && `Where: ${email.venue}`,
+    email.organiser && `Organised by ${email.organiser}`,
     email.recommendation === 'for_you' &&
       email.recommendation_reason &&
-      `For you: ${email.recommendation_reason}.`,
+      `For you: ${email.recommendation_reason}`,
   ].filter(Boolean) as string[]
   const openLink = email.registration_link ?? email.web_link
   const hasDate = Boolean(email.deadline || email.event_date)
@@ -161,7 +136,9 @@ export default function EmailDetailPage() {
       </Link>
 
       <article className="card p-6">
-        <h1 className="text-2xl font-bold leading-snug text-ink">{email.subject}</h1>
+        <h1 className="text-xl font-bold leading-snug text-ink [overflow-wrap:anywhere] sm:text-2xl">
+          {email.subject}
+        </h1>
         <div className="mt-4 flex items-center gap-3">
           <span
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
@@ -196,8 +173,15 @@ export default function EmailDetailPage() {
           {summary.length ? (
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-2 marker:text-accent">
               {summary.map((line) => (
-                <li key={line}>{line}</li>
+                <li key={line} className="[overflow-wrap:anywhere]">
+                  <Linkified text={line} />
+                </li>
               ))}
+              {email.registration_link && (
+                <li className="[overflow-wrap:anywhere]">
+                  Link: <ExternalLink href={email.registration_link} />
+                </li>
+              )}
             </ul>
           ) : (
             <p className="mt-3 text-sm text-muted">The AI is still reading this email.</p>
@@ -241,7 +225,7 @@ export default function EmailDetailPage() {
 
       <article className="card p-6">
         <h2 className="mb-3 font-semibold text-ink">Email</h2>
-        <div className="whitespace-pre-line break-words text-sm leading-relaxed text-ink-2">
+        <div className="whitespace-pre-line text-sm leading-relaxed text-ink-2 [overflow-wrap:anywhere]">
           <Linkified text={email.body_text || email.snippet} />
         </div>
       </article>
