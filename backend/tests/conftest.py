@@ -6,7 +6,8 @@ import pytest
 
 _tmp = tempfile.mkdtemp()
 os.environ.update(
-    DATABASE_URL=f"sqlite:///{_tmp}/test.db",
+    # TEST_DATABASE_URL lets the suite run against PostgreSQL (e.g. a throwaway Neon branch)
+    DATABASE_URL=os.environ.get("TEST_DATABASE_URL", f"sqlite:///{_tmp}/test.db"),
     SYNC_ENABLED="false",
     SECRET_KEY="test-secret-test-secret-test-secret-123",
     MS_CLIENT_ID="ms-id",
