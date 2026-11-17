@@ -95,6 +95,17 @@ _EMAILS = [
         None,
     ),
     (
+        "Security alert: new sign-in to your account",
+        "Google",
+        "no-reply@accounts.google.com",
+        "SECURITY",
+        None,
+        False,
+        "for_you",
+        "About your account security",
+        None,
+    ),
+    (
         "Mega 11.11 sale: 50% off laptops",
         "TechMart Malaysia",
         "promo@techmart.example",

@@ -159,6 +159,7 @@ export type Stats = {
   organisations_approved: number
   ads_live: number
   reports_open: number
+  segments_30d: Record<string, number>
   llm: {
     configured: boolean
     model?: string

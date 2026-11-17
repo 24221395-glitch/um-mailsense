@@ -1,66 +1,75 @@
 @import 'tailwindcss';
 
 /*
- * UM MailSense theme — dark with amber accents (default), plus a light variant.
+ * UM MailSense theme — light lavender with purple accents (default), plus a dark variant.
  * Components use the token classes below (bg-bg, bg-surface, text-ink, text-accent, ...)
  * so both themes come from these variables only.
  */
 
 :root {
-  color-scheme: dark;
-  --bg: #0b0806;
-  --bg-glow: rgba(214, 110, 20, 0.16);
-  --surface: #15100b;
-  --surface-2: #1e1610;
-  --surface-3: #2a1d12;
-  --line: rgba(247, 147, 30, 0.16);
-  --line-strong: rgba(247, 147, 30, 0.35);
-  --ink: #f6efe7;
-  --ink-2: #e2d6c8;
-  --muted: #b3a493;
-  --faint: #7d6f61;
-  --accent: #f7931e;
-  --accent-2: #ffb547;
-  --accent-ink: #1b1006;
-  --accent-soft: rgba(247, 147, 30, 0.13);
-  --success: #5fd68b;
-  --success-soft: rgba(95, 214, 139, 0.12);
-  --danger: #ff7a6b;
-  --danger-soft: rgba(255, 122, 107, 0.12);
-  --warn: #ffc65c;
-  --warn-soft: rgba(255, 198, 92, 0.13);
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color-scheme: light;
+  --bg: #f6f4ff;
+  --bg-glow: rgba(124, 92, 255, 0.16);
+  --surface: #ffffff;
+  --surface-2: #f3f0ff;
+  --surface-3: #e9e4ff;
+  --line: rgba(91, 63, 248, 0.12);
+  --line-strong: rgba(91, 63, 248, 0.32);
+  --ink: #17123a;
+  --ink-2: #39345e;
+  --muted: #67628c;
+  --faint: #9a96b8;
+  --accent: #5b3ff8;
+  --accent-2: #7c5cff;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(91, 63, 248, 0.09);
+  --success: #0f9f6e;
+  --success-soft: rgba(16, 185, 129, 0.12);
+  --danger: #e0345a;
+  --danger-soft: rgba(240, 67, 107, 0.1);
+  --warn: #b26a00;
+  --warn-soft: rgba(245, 158, 11, 0.14);
+  --shadow: 0 8px 28px rgba(60, 40, 160, 0.08);
+  --shadow-strong: 0 14px 40px rgba(60, 40, 160, 0.16);
+  /* dark purple sidebar */
+  --side: #1c1640;
+  --side-2: #2a2259;
+  --side-ink: #e8e4ff;
+  --side-muted: #a49dd6;
 }
 
-:root[data-theme='light'] {
-  color-scheme: light;
-  --bg: #fbf7f2;
-  --bg-glow: rgba(247, 147, 30, 0.12);
-  --surface: #ffffff;
-  --surface-2: #f6eee4;
-  --surface-3: #efe2d2;
-  --line: rgba(160, 90, 20, 0.16);
-  --line-strong: rgba(200, 110, 20, 0.4);
-  --ink: #1d140c;
-  --ink-2: #3a2c1f;
-  --muted: #6e5e4e;
-  --faint: #9a8a79;
-  --accent: #e07b0b;
-  --accent-2: #f59e2b;
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f0c24;
+  --bg-glow: rgba(124, 92, 255, 0.22);
+  --surface: #17133a;
+  --surface-2: #1f1a4a;
+  --surface-3: #2a2360;
+  --line: rgba(160, 140, 255, 0.16);
+  --line-strong: rgba(160, 140, 255, 0.38);
+  --ink: #f2f0ff;
+  --ink-2: #d5d0f5;
+  --muted: #a49dd6;
+  --faint: #7671a8;
+  --accent: #8b6dff;
+  --accent-2: #a68cff;
   --accent-ink: #ffffff;
-  --accent-soft: rgba(224, 123, 11, 0.1);
-  --success: #1f8a4c;
-  --success-soft: rgba(31, 138, 76, 0.1);
-  --danger: #c4372a;
-  --danger-soft: rgba(196, 55, 42, 0.08);
-  --warn: #a8620a;
-  --warn-soft: rgba(224, 150, 20, 0.12);
-  --shadow: 0 10px 30px rgba(120, 70, 20, 0.12);
+  --accent-soft: rgba(139, 109, 255, 0.16);
+  --success: #4ade9b;
+  --success-soft: rgba(74, 222, 155, 0.14);
+  --danger: #ff7a95;
+  --danger-soft: rgba(255, 122, 149, 0.14);
+  --warn: #ffc65c;
+  --warn-soft: rgba(255, 198, 92, 0.14);
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --shadow-strong: 0 14px 40px rgba(0, 0, 0, 0.5);
+  --side: #0b0920;
+  --side-2: #221c52;
 }
 
 @theme inline {
   --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
-  /* between xl (1280px) and 2xl (1536px): room for the robot beside the inbox preview */
+  /* between xl (1280px) and 2xl (1536px): room for the full landing hero */
   --breakpoint-wide: 87.5rem;
 
   --color-bg: var(--bg);
@@ -83,6 +92,10 @@
   --color-danger-soft: var(--danger-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-side: var(--side);
+  --color-side-2: var(--side-2);
+  --color-side-ink: var(--side-ink);
+  --color-side-muted: var(--side-muted);
 }
 
 html,
@@ -96,9 +109,38 @@ body {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(1200px 600px at 85% -10%, var(--bg-glow), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, var(--bg-glow), transparent 60%), var(--bg);
+    radial-gradient(1100px 600px at 90% -10%, var(--bg-glow), transparent 60%),
+    radial-gradient(900px 500px at -10% 105%, var(--bg-glow), transparent 60%), var(--bg);
   background-attachment: fixed;
+}
+
+/* ---- Everything clickable feels clickable ------------------------------------------- */
+button:not(:disabled),
+[role='button'],
+a[href],
+summary,
+select,
+label:has(> input[type='checkbox']),
+input[type='checkbox'],
+input[type='file'] {
+  cursor: pointer;
+}
+button,
+a {
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    filter 0.18s ease;
+}
+button:not(:disabled):active,
+a[href]:active {
+  transform: translateY(1px) scale(0.985);
+}
+button:disabled {
+  cursor: not-allowed;
 }
 
 /* Form controls follow the theme */
@@ -128,31 +170,83 @@ input[type='checkbox'] {
 }
 
 @layer components {
-  /* Primary amber gradient button (Sign in with Siswamail) */
+  /* Primary purple button (Sign in with Siswamail, Save, Upload, ...) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-on-accent transition disabled:opacity-50;
-    background: linear-gradient(180deg, var(--accent-2), var(--accent));
-    box-shadow: 0 6px 24px rgba(247, 147, 30, 0.28);
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white select-none disabled:opacity-50;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    box-shadow:
+      0 8px 22px rgba(91, 63, 248, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
-  .btn-primary:hover {
-    filter: brightness(1.06);
+  .btn-primary:not(:disabled):hover {
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+    box-shadow:
+      0 12px 28px rgba(91, 63, 248, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
-  /* Outlined button (Learn More) */
+  /* Outlined button (Learn More, Add to Calendar, Add) */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line-strong px-5 py-3 font-medium text-ink transition hover:bg-surface-2 disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border-2 border-accent/40 bg-surface px-5 py-3 font-semibold text-accent select-none disabled:opacity-50;
+    box-shadow: 0 2px 8px rgba(91, 63, 248, 0.06);
   }
-  /* Glassy card used everywhere */
+  .btn-ghost:not(:disabled):hover {
+    @apply border-accent bg-accent-soft;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(91, 63, 248, 0.14);
+  }
+  /* Small soft button (chips, secondary actions) */
+  .btn-soft {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent-soft px-3 py-2 text-sm font-semibold text-accent select-none disabled:opacity-50;
+  }
+  .btn-soft:not(:disabled):hover {
+    @apply bg-accent text-white;
+    box-shadow: 0 6px 16px rgba(91, 63, 248, 0.25);
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border-2 border-danger/30 bg-surface px-4 py-2.5 text-sm font-semibold text-danger select-none;
+  }
+  .btn-danger:hover {
+    @apply border-danger bg-danger-soft;
+  }
+  /* White card used everywhere */
   .card {
     @apply rounded-2xl border border-line bg-surface;
     box-shadow: var(--shadow);
   }
+  .card-hover:hover {
+    @apply border-line-strong;
+    box-shadow: var(--shadow-strong);
+    transform: translateY(-2px);
+  }
   .eyebrow {
-    @apply text-xs font-medium tracking-[0.3em] text-accent uppercase;
+    @apply text-xs font-semibold tracking-[0.25em] text-accent uppercase;
+  }
+  .pill {
+    @apply inline-flex items-center rounded-full bg-accent-soft px-4 py-1.5 text-sm font-medium text-accent;
   }
   .text-gradient {
-    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-float {
+    animation: none;
   }
 }

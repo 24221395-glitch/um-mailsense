@@ -132,5 +132,16 @@ def stats(db: Session = Depends(get_db)):
         ),
         ads_live=count(select(func.count(Ad.id)).where(Ad.status == "approved")),
         reports_open=count(select(func.count(AdReport.id)).where(AdReport.resolved.is_(False))),
+        segments_30d={
+            seg: n
+            for seg, n in db.execute(
+                select(Email.segment, func.count(Email.id))
+                .where(
+                    Email.segment.is_not(None),
+                    Email.received_at >= datetime.now(UTC) - timedelta(days=30),
+                )
+                .group_by(Email.segment)
+            )
+        },
         llm=ai_bridge.usage(),
     )

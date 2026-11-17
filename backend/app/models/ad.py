@@ -34,9 +34,7 @@ class Ad(Base):
     status: Mapped[str] = mapped_column(String(20), default="approved", index=True)
     views: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime, default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 
     organisation: Mapped[Organisation] = relationship()
 

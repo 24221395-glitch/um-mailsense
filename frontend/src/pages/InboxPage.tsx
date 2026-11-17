@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getMe, signIn } from '../api/auth'
 import { ApiError } from '../api/client'
-import { getSegmentCounts, listEmails, processEmails, syncNow } from '../api/emails'
+import { getSegmentCounts, listEmails } from '../api/emails'
 import { getProfile } from '../api/profile'
 import EmailCard from '../components/EmailCard'
 import SegmentTabs from '../components/SegmentTabs'
-import { RefreshIcon, SEGMENT_ICONS, SparkleIcon } from '../components/icons'
-import { SEGMENT_ORDER, UNSORTED, segmentLabel } from '../segments'
-import type { Email, ProcessResult, SegmentCount, User } from '../types/api'
+import SegmentTile from '../components/SegmentTile'
+import { RefreshIcon, SparkleIcon } from '../components/icons'
+import { useMailSync } from '../hooks/useMailSync'
+import { TILE_SEGMENTS, UNSORTED, segmentLabel } from '../segments'
+import type { Email, SegmentCount, User } from '../types/api'
 
 const FOR_YOU = 'FOR_YOU'
 
@@ -29,11 +31,6 @@ export default function InboxPage() {
   const [emails, setEmails] = useState<Email[]>([])
   const [counts, setCounts] = useState<SegmentCount[]>([])
   const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
-  const [checking, setChecking] = useState(true) // looking for new mail on open
-  const [work, setWork] = useState<ProcessResult | null>(null) // AI work left
-  const [stalls, setStalls] = useState(0)
-  const opened = useRef(false)
   const [hasProfile, setHasProfile] = useState<boolean | null>(null)
 
   const handleError = useCallback(
@@ -62,6 +59,8 @@ export default function InboxPage() {
     }
   }, [activeCode, handleError])
 
+  const sync = useMailSync(load, handleError)
+
   useEffect(() => {
     getMe().then(setUser).catch(handleError)
     getProfile()
@@ -73,45 +72,8 @@ export default function InboxPage() {
     load()
   }, [load])
 
-  // On open: fetch new mail if a sync is due, then start sorting. This replaces a
-  // background timer, so it also works on serverless hosting.
-  useEffect(() => {
-    if (opened.current) return
-    opened.current = true
-    syncNow(true)
-      .catch(handleError)
-      .finally(async () => {
-        setChecking(false)
-        await load()
-        processEmails()
-          .then(setWork)
-          .catch(() => {})
-      })
-  }, [handleError, load])
-
-  // While emails are "Sorting…", ask the server to process the next small batch.
-  // Stop after 3 calls without progress (or when the AI is not set up).
-  const pending = work ? work.unsorted + work.unscored : 0
-  const keepWorking = !!work && work.ai_ready && pending > 0 && stalls < 3
-  useEffect(() => {
-    if (!keepWorking || !work) return
-    const timer = window.setTimeout(async () => {
-      try {
-        const next = await processEmails()
-        const stuck = next.unsorted === work.unsorted && next.unscored === work.unscored
-        setStalls((n) => (stuck ? n + 1 : 0))
-        setWork(next)
-        load()
-      } catch {
-        setStalls((n) => n + 1)
-      }
-    }, 800)
-    return () => window.clearTimeout(timer)
-  }, [keepWorking, work, load])
-  const unsortedCount = counts.find((c) => c.code === null)?.total ?? 0
-
   const byCode = useMemo(() => new Map(counts.map((c) => [c.code ?? UNSORTED, c])), [counts])
-  const tiles = SEGMENT_ORDER.filter((c) => c !== 'NOT_FOR_ME')
+  const unsortedCount = byCode.get(UNSORTED)?.total ?? 0
 
   const tabs = useMemo(() => {
     const total = counts.reduce((sum, c) => sum + c.total, 0)
@@ -123,35 +85,19 @@ export default function InboxPage() {
         label: segmentLabel('NOT_FOR_ME'),
         count: byCode.get('NOT_FOR_ME')?.total ?? 0,
       },
-      ...(byCode.has(UNSORTED)
-        ? [{ code: UNSORTED, label: 'Sorting…', count: byCode.get(UNSORTED)!.total }]
-        : []),
+      ...(unsortedCount ? [{ code: UNSORTED, label: 'Sorting…', count: unsortedCount }] : []),
     ]
-  }, [counts, byCode])
+  }, [counts, byCode, unsortedCount])
 
   const unreadCount = counts.reduce((sum, c) => sum + c.unread, 0)
   const reconnect = user?.accounts.find((a) => a.needs_reconnect)
-
-  async function handleSync() {
-    setSyncing(true)
-    setStalls(0)
-    try {
-      await syncNow()
-      await load()
-      setWork(await processEmails())
-    } catch (err) {
-      handleError(err)
-    } finally {
-      setSyncing(false)
-    }
-  }
+  const { work } = sync
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
+    <div className="mx-auto w-full max-w-5xl">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <p className="eyebrow">Inbox</p>
-          <h1 className="mt-2 flex items-center gap-2 text-2xl font-semibold text-ink sm:text-3xl">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-ink sm:text-3xl">
             Your Inbox, Organised by AI <SparkleIcon className="h-5 w-5 text-accent" />
           </h1>
           <p className="mt-1 text-sm text-muted">
@@ -160,12 +106,12 @@ export default function InboxPage() {
         </div>
         <button
           type="button"
-          onClick={handleSync}
-          disabled={syncing}
-          className="btn-ghost py-2 text-sm"
+          onClick={sync.refresh}
+          disabled={sync.syncing}
+          className="btn-ghost py-2.5 text-sm"
         >
-          <RefreshIcon className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-          {syncing ? 'Syncing…' : 'Refresh'}
+          <RefreshIcon className={`h-4 w-4 ${sync.syncing ? 'animate-spin' : ''}`} />
+          {sync.syncing ? 'Syncing…' : 'Refresh'}
         </button>
       </header>
 
@@ -181,9 +127,11 @@ export default function InboxPage() {
           </button>
         </div>
       )}
-
-      {keepWorking && work && (
-        <p role="status" className="mb-4 flex items-center gap-2 text-sm text-accent">
+      {sync.keepWorking && work && (
+        <p
+          role="status"
+          className="mb-4 flex items-center gap-2 rounded-xl bg-accent-soft p-3 text-sm font-medium text-accent"
+        >
           <SparkleIcon className="h-4 w-4 animate-spin" />
           {work.unsorted > 0
             ? `Sorting ${work.unsorted} email${work.unsorted === 1 ? '' : 's'} with AI…`
@@ -196,41 +144,28 @@ export default function InboxPage() {
           back.
         </p>
       )}
-
       {hasProfile === false && (
         <Link
           to="/profile"
-          className="mb-4 block rounded-xl bg-accent-soft p-3 text-sm text-accent"
+          className="mb-4 flex items-center justify-between rounded-xl bg-accent-soft p-3 text-sm text-accent hover:bg-accent hover:text-white"
         >
-          <span className="font-semibold">Upload your CV</span> to see which emails are for you →
+          <span>
+            <span className="font-semibold">Upload your CV</span> to see which emails are for you
+          </span>
+          <span aria-hidden="true">→</span>
         </Link>
       )}
 
-      <div className="mb-5 grid grid-cols-3 gap-3">
-        {tiles.map((code) => {
-          const Ico = SEGMENT_ICONS[code]
-          const c = byCode.get(code)
-          const active = activeCode === code
-          return (
-            <button
-              key={code}
-              type="button"
-              onClick={() => setActiveCode(active ? 'ALL' : code)}
-              aria-pressed={active}
-              className={`rounded-2xl border px-2 py-4 text-center transition ${
-                active
-                  ? 'border-accent bg-accent-soft'
-                  : 'border-line bg-surface hover:border-line-strong'
-              }`}
-            >
-              <Ico className="mx-auto h-8 w-8 text-accent" />
-              <p className="mt-2 text-sm font-medium leading-tight text-ink">
-                {segmentLabel(code)}
-              </p>
-              <p className="mt-0.5 text-xs text-muted">{c?.unread ?? 0} new</p>
-            </button>
-          )
-        })}
+      <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        {TILE_SEGMENTS.map((code) => (
+          <SegmentTile
+            key={code}
+            code={code}
+            newCount={byCode.get(code)?.unread ?? 0}
+            active={activeCode === code}
+            onClick={() => setActiveCode(activeCode === code ? 'ALL' : code)}
+          />
+        ))}
       </div>
 
       <div className="mb-4">
@@ -240,8 +175,8 @@ export default function InboxPage() {
       {loading ? (
         <p className="py-10 text-center text-sm text-faint">Loading your inbox…</p>
       ) : emails.length === 0 ? (
-        <p className="py-10 text-center text-sm text-faint">
-          {checking
+        <p className="card py-10 text-center text-sm text-muted">
+          {sync.checking
             ? 'Checking for new mail…'
             : activeCode === FOR_YOU
               ? hasProfile
@@ -260,6 +195,7 @@ export default function InboxPage() {
                 snippet={email.snippet}
                 receivedAt={email.received_at}
                 isRead={email.is_read}
+                segmentCode={email.segment}
                 segmentLabel={segmentLabel(email.segment)}
                 deadlineLabel={email.deadline ? `Due ${formatDay(email.deadline)}` : undefined}
                 recommendation={email.recommendation}

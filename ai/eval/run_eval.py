@@ -42,7 +42,7 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles default to cp1252
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", nargs="?", default=str(HERE / "labelled_emails.jsonl"))
-    parser.add_argument("--prompt", default="classify_v1")
+    parser.add_argument("--prompt", default="classify_v2")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--no-extract", action="store_true", help="skip deadline check (cheaper)")
     args = parser.parse_args()

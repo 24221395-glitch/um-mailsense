@@ -10,14 +10,114 @@ import {
 } from '../api/admin'
 import { ApiError } from '../api/client'
 import SegmentTabs from '../components/SegmentTabs'
-import { segmentLabel } from '../segments'
+import {
+  BuildingIcon,
+  FileIcon,
+  ShieldIcon,
+  SparkleIcon,
+  StarIcon,
+  UsersIcon,
+} from '../components/icons'
+import { SEGMENT_ORDER, segmentColor, segmentLabel } from '../segments'
 import type { AdminAd, AdminOrganisation, Stats } from '../types/api'
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({
+  label,
+  value,
+  Icon,
+  color,
+}: {
+  label: string
+  value: string | number
+  Icon: typeof UsersIcon
+  color: string
+}) {
   return (
-    <div className="rounded-xl border border-line bg-surface p-3">
-      <p className="text-xs text-muted">{label}</p>
-      <p className="text-xl font-semibold text-ink">{value}</p>
+    <div className="card flex items-center gap-4 p-4">
+      <span
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+        style={{ background: `${color}1a`, color }}
+      >
+        <Icon className="h-6 w-6" />
+      </span>
+      <div>
+        <p className="text-2xl font-bold text-ink">{value}</p>
+        <p className="text-sm text-muted">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+/** Donut chart of emails per segment (last 30 days). */
+function SegmentDonut({ data = {} }: { data?: Record<string, number> }) {
+  const entries = SEGMENT_ORDER.filter((c) => data[c]).map((c) => [c, data[c]!] as const)
+  const total = entries.reduce((sum, [, n]) => sum + n, 0)
+  const r = 70
+  const circ = 2 * Math.PI * r
+  // each slice starts where the previous ones end
+  const arcs = entries.map(([code, n], i) => ({
+    code,
+    len: (n / total) * circ,
+    start: entries.slice(0, i).reduce((sum, [, m]) => sum + (m / total) * circ, 0),
+  }))
+  return (
+    <div className="card p-5">
+      <h2 className="font-semibold text-ink">Email Segments (Last 30 Days)</h2>
+      {total === 0 ? (
+        <p className="mt-4 text-sm text-muted">No sorted emails yet.</p>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-center gap-6">
+          <svg
+            viewBox="0 0 180 180"
+            className="h-44 w-44 shrink-0"
+            role="img"
+            aria-label={`${total} emails by segment`}
+          >
+            <circle cx="90" cy="90" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="26" />
+            {arcs.map(({ code, len, start }) => (
+              <circle
+                key={code}
+                cx="90"
+                cy="90"
+                r={r}
+                fill="none"
+                stroke={segmentColor(code).fg}
+                strokeWidth="26"
+                strokeDasharray={`${len} ${circ - len}`}
+                strokeDashoffset={-start}
+                transform="rotate(-90 90 90)"
+              />
+            ))}
+            <text
+              x="90"
+              y="88"
+              textAnchor="middle"
+              fontSize="24"
+              fontWeight="700"
+              fill="var(--ink)"
+            >
+              {total.toLocaleString()}
+            </text>
+            <text x="90" y="108" textAnchor="middle" fontSize="12" fill="var(--muted)">
+              Emails
+            </text>
+          </svg>
+          <ul className="min-w-0 flex-1 space-y-2 text-sm">
+            {entries.map(([code, n]) => (
+              <li key={code} className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-ink-2">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ background: segmentColor(code).fg }}
+                  />
+                  {segmentLabel(code)}
+                </span>
+                <span className="font-semibold text-ink">{Math.round((n / total) * 100)}%</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
@@ -86,7 +186,8 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <h1 className="mb-4 text-2xl font-bold text-ink">Admin</h1>
+      <h1 className="text-2xl font-bold text-ink sm:text-3xl">Admin Dashboard</h1>
+      <p className="mb-5 mt-1 text-muted">Manage organisations, posts and system usage.</p>
       {error && (
         <p role="alert" className="mb-3 text-sm text-danger">
           {error}
@@ -94,23 +195,55 @@ export default function AdminPage() {
       )}
 
       {stats && (
-        <section className="mb-5 grid grid-cols-2 gap-2">
-          <Stat label="Users" value={stats.users} />
-          <Stat label="Active (7 days)" value={stats.active_users_7d} />
-          <Stat label="Emails sorted" value={`${stats.emails_classified} / ${stats.emails}`} />
-          <Stat label="Live posts" value={stats.ads_live} />
-          <Stat label="Clubs pending" value={stats.organisations_pending} />
-          <Stat label="Open reports" value={stats.reports_open} />
-          <div className="col-span-2 rounded-xl border border-line bg-surface p-3 text-sm">
-            <p className="text-xs text-muted">AI usage today</p>
-            {llm?.configured ? (
-              <p className="text-ink">
-                {llm.requests} requests · {tokens?.toLocaleString()} tokens
-                <span className="block text-xs text-faint">{llm.model}</span>
+        <section className="mb-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+            <Stat Icon={UsersIcon} color="#5b3ff8" label="Total Students" value={stats.users} />
+            <Stat
+              Icon={BuildingIcon}
+              color="#7c5cff"
+              label="Organisations"
+              value={stats.organisations_approved}
+            />
+            <Stat Icon={FileIcon} color="#10b981" label="Active Posts" value={stats.ads_live} />
+            <Stat
+              Icon={StarIcon}
+              color="#3b82f6"
+              label="Active (7 days)"
+              value={stats.active_users_7d}
+            />
+            <Stat
+              Icon={SparkleIcon}
+              color="#f59e0b"
+              label="Emails sorted"
+              value={`${stats.emails_classified.toLocaleString()} / ${stats.emails.toLocaleString()}`}
+            />
+            <Stat
+              Icon={ShieldIcon}
+              color="#f0436b"
+              label="Open reports"
+              value={stats.reports_open}
+            />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+            <SegmentDonut data={stats.segments_30d} />
+            <div className="card p-5">
+              <h2 className="font-semibold text-ink">AI usage today</h2>
+              {llm?.configured ? (
+                <>
+                  <p className="mt-3 text-3xl font-bold text-ink">{tokens?.toLocaleString()}</p>
+                  <p className="text-sm text-muted">tokens in {llm.requests} requests</p>
+                  <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-2">
+                    {llm.model}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-3 text-sm text-warn">AI not configured (LLM_API_KEY missing)</p>
+              )}
+              <p className="mt-4 text-sm text-muted">
+                Clubs waiting for review:{' '}
+                <span className="font-semibold text-ink">{stats.organisations_pending}</span>
               </p>
-            ) : (
-              <p className="text-warn">AI not configured (LLM_API_KEY missing)</p>
-            )}
+            </div>
           </div>
         </section>
       )}
@@ -151,15 +284,11 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => act(() => approveOrganisation(o.id))}
-                  className="rounded-xl bg-success px-3 py-1.5 text-on-accent"
+                  className="rounded-xl bg-success px-4 py-2 text-sm font-semibold text-white shadow-md hover:brightness-110"
                 >
                   Approve
                 </button>
-                <button
-                  type="button"
-                  onClick={() => reject(o)}
-                  className="rounded-xl border border-danger/40 px-3 py-1.5 text-danger"
-                >
+                <button type="button" onClick={() => reject(o)} className="btn-danger py-2">
                   Reject
                 </button>
               </div>
@@ -199,7 +328,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => act(() => moderateAd(ad.id, 'approved'))}
-                      className="rounded-xl bg-success px-3 py-1.5 text-on-accent"
+                      className="rounded-xl bg-success px-4 py-2 text-sm font-semibold text-white shadow-md hover:brightness-110"
                     >
                       {ad.status === 'pending' ? 'Approve' : 'Restore'}
                     </button>
@@ -208,7 +337,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => act(() => moderateAd(ad.id, 'approved'))}
-                      className="rounded-xl border border-line px-3 py-1.5 text-muted"
+                      className="btn-ghost py-2 text-sm"
                     >
                       Keep (dismiss reports)
                     </button>
@@ -217,7 +346,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => act(() => moderateAd(ad.id, 'hidden'))}
-                      className="rounded-xl border border-line-strong px-3 py-1.5 text-warn"
+                      className="rounded-xl border-2 border-warn/40 px-4 py-2 text-sm font-semibold text-warn hover:bg-warn-soft"
                     >
                       Hide
                     </button>
@@ -225,7 +354,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => act(() => moderateAd(ad.id, 'removed'))}
-                    className="rounded-xl border border-danger/40 px-3 py-1.5 text-danger"
+                    className="btn-danger py-2"
                   >
                     Remove
                   </button>

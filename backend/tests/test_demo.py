@@ -21,16 +21,16 @@ def test_demo_is_off_by_default(client):
 def test_demo_login_creates_sample_data_once(client, db, demo_on):
     assert client.get("/api/v1/auth/providers").json()["demo"] is True
     resp = client.get("/api/v1/auth/demo/login")
-    assert resp.status_code == 302 and resp.headers["location"].endswith("/inbox")
+    assert resp.status_code == 302 and resp.headers["location"].endswith("/home")
     me = client.get("/api/v1/auth/me").json()
     assert me["email"] == "demo.student@mailsense.local" and me["role"] == "admin"
-    assert client.get("/api/v1/emails").json()["total"] == 8
+    assert client.get("/api/v1/emails").json()["total"] == 9
     assert client.get("/api/v1/ads").json()["total"] == 3
     assert client.get("/api/v1/profile").json()["skills"][0] == "Python"
     # demo mailbox is skipped by sync, and logging in again adds nothing
     assert client.post("/api/v1/emails/sync").json() == {"new_emails": 0}
     client.get("/api/v1/auth/demo/login")
-    assert db.scalar(select(func.count(Email.id))) == 8
+    assert db.scalar(select(func.count(Email.id))) == 9
     assert db.scalar(select(func.count(User.id))) == 2
 
 

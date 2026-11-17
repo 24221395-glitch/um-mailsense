@@ -24,6 +24,7 @@ class Segment(StrEnum):
     EVENT = "EVENT"  # talks, workshops, seminars, programmes, festivals
     SCHOLARSHIP_CAREER = "SCHOLARSHIP_CAREER"  # scholarships, internships, jobs, career fairs
     CLUB = "CLUB"  # student clubs / societies: recruitment, meetings, activities
+    SECURITY = "SECURITY"  # sign-in codes, password resets, login alerts (genuine, not phishing)
     NOT_FOR_ME = "NOT_FOR_ME"  # newsletters, spam, surveys, ads, irrelevant mail
 
 
@@ -34,6 +35,7 @@ SEGMENT_LABELS: dict[Segment, str] = {
     Segment.EVENT: "Events & Programmes",
     Segment.SCHOLARSHIP_CAREER: "Scholarships & Careers",
     Segment.CLUB: "Club & Community",
+    Segment.SECURITY: "Security",
     Segment.NOT_FOR_ME: "Not for me",
 }
 

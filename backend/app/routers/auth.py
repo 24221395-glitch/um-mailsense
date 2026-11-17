@@ -79,15 +79,15 @@ def demo_login(db: Session = Depends(get_db)):
     from app.services.demo_data import ensure_demo_user
 
     user = ensure_demo_user(db)
-    response = _to_frontend("/inbox")
+    response = _to_frontend("/home")
     set_session_cookie(response, user.id)
     return response
 
 
 def _safe_next(path: str | None) -> str:
     """Only allow redirects to our own frontend pages (no open redirect)."""
-    allowed = ("/inbox", "/organisation", "/profile", "/board")
-    return path if path in allowed else "/inbox"
+    allowed = ("/home", "/inbox", "/organisation", "/profile", "/board")
+    return path if path in allowed else "/home"
 
 
 @router.get("/{provider}/login")

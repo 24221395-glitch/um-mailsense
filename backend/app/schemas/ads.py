@@ -167,4 +167,5 @@ class StatsOut(BaseModel):
     organisations_approved: int
     ads_live: int
     reports_open: int
+    segments_30d: dict[str, int]  # emails received in the last 30 days, per segment
     llm: dict
