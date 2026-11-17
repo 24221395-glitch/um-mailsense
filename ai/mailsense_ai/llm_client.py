@@ -18,12 +18,15 @@ import httpx
 
 log = logging.getLogger(__name__)
 
+# provider -> (base URL, default model, supports JSON mode)
 PROVIDERS = {
     # Llama 4 Scout (the default). Groq stopped serving Llama 4 in 2026.
-    "openrouter": ("https://openrouter.ai/api/v1", "meta-llama/llama-4-scout"),
-    "together": ("https://api.together.xyz/v1", "meta-llama/Llama-4-Scout-17B-16E-Instruct"),
+    # OpenRouter has no Llama 4 Scout endpoint that accepts response_format, so JSON mode is
+    # off there; the prompts ask for JSON only and parse_json_object repairs stray text.
+    "openrouter": ("https://openrouter.ai/api/v1", "meta-llama/llama-4-scout", False),
+    "together": ("https://api.together.xyz/v1", "meta-llama/Llama-4-Scout-17B-16E-Instruct", True),
     # Free fallback for local testing only (not Llama).
-    "groq": ("https://api.groq.com/openai/v1", "openai/gpt-oss-20b"),
+    "groq": ("https://api.groq.com/openai/v1", "openai/gpt-oss-20b", True),
 }
 
 
@@ -55,15 +58,17 @@ class LLMClient:
         model: str | None = None,
         base_url: str | None = None,
         daily_token_limit: int = 0,  # 0 = no limit
+        json_mode: bool | None = None,  # None = what the provider supports
         timeout: float = 45,
         max_retries: int = 4,
         transport: httpx.BaseTransport | None = None,  # for tests
     ):
         if provider not in PROVIDERS and not base_url:
             raise ValueError(f"Unknown LLM provider {provider!r}; set base_url")
-        default_url, default_model = PROVIDERS.get(provider, ("", ""))
+        default_url, default_model, default_json = PROVIDERS.get(provider, ("", "", True))
         self.base_url = (base_url or default_url).rstrip("/")
         self.model = model or default_model
+        self.json_mode = default_json if json_mode is None else json_mode
         self.daily_token_limit = daily_token_limit
         self.max_retries = max_retries
         self.usage = Usage()
@@ -126,8 +131,9 @@ class LLMClient:
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "temperature": 0,
             "max_tokens": max_tokens,
-            "response_format": {"type": "json_object"},
         }
+        if self.json_mode:
+            payload["response_format"] = {"type": "json_object"}
         data = self._post(payload)
         self._record(data.get("usage") or {})
         try:

@@ -21,3 +21,4 @@ frontend/dist
 !.env.example
 .neon
 Theme UI.png
+*.env.local

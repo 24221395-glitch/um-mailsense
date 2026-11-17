@@ -51,15 +51,22 @@ EMAIL = EmailInput(
 # --- client ------------------------------------------------------------------------------
 
 
-def test_request_uses_llama4_scout_json_mode_and_temperature_0():
+def test_request_uses_llama4_scout_and_temperature_0():
     calls = []
     client = fake_llm({"segment": "HACKATHON", "confidence": 0.9}, calls=calls)
     classify_email(EMAIL, client)
     sent = calls[0]
     assert sent["model"] == "meta-llama/llama-4-scout"
     assert sent["temperature"] == 0
-    assert sent["response_format"] == {"type": "json_object"}
+    # OpenRouter has no Llama 4 Scout endpoint with JSON mode, so it is not requested
+    assert "response_format" not in sent
     assert "<email_body>" in sent["messages"][1]["content"]
+
+
+def test_json_mode_follows_the_provider():
+    assert LLMClient("k", provider="groq").json_mode is True
+    assert LLMClient("k", provider="openrouter").json_mode is False
+    assert LLMClient("k", provider="openrouter", json_mode=True).json_mode is True
 
 
 def test_providers_switch_by_name():

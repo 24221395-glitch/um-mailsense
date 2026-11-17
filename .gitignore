@@ -43,3 +43,6 @@ backend/*.db
 *.gguf
 models/
 .neon
+.vercel
+.env*
+!.env.example
